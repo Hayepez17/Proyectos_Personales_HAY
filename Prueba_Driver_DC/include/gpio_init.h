@@ -17,6 +17,11 @@
 #define C14
 #define C15
 
+
+#define BT1 GPIO_NUM_32
+#define BT2 GPIO_NUM_33
+
+
 //#define LED1 GPIO_NUM_2
 
 void init_gpio();

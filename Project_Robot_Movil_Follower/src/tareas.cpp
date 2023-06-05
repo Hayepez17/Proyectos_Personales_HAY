@@ -27,7 +27,7 @@ void Tarea1(void *Parametro)
             promedio1 += adc_value1 = adc1_get_raw(CH1);
             promedio2 += adc_value2 = adc1_get_raw(CH2);
 
-            // vTaskDelay(20);
+            //vTaskDelay(20);
         }
 
         promedio1 /= NumeroMuestras;
@@ -107,6 +107,8 @@ void set_pwm()
 
     ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, DutyM2);
     ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1);
+
+    vTaskDelay(pdMS_TO_TICKS(20));
 }
 
 int toggle(char x)

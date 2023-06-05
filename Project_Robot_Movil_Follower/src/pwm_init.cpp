@@ -6,7 +6,7 @@ void pwm_init(){
     ConfigTimerPWM.speed_mode = LEDC_HIGH_SPEED_MODE;
     ConfigTimerPWM.duty_resolution = LEDC_TIMER_10_BIT;
     ConfigTimerPWM.timer_num = LEDC_TIMER_0;
-    ConfigTimerPWM.freq_hz = 5000;
+    ConfigTimerPWM.freq_hz = 2000;
 
     ledc_timer_config(&ConfigTimerPWM);
 

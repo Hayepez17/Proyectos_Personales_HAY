@@ -2,8 +2,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-
-void pwm_init(){
+void pwm_init()
+{
 
     ledc_timer_config_t ConfigTimerPWM;
     ConfigTimerPWM.speed_mode = LEDC_HIGH_SPEED_MODE;
@@ -28,8 +28,9 @@ void pwm_init(){
     ConfigPWM2.intr_type = LEDC_INTR_DISABLE;
     ConfigPWM2.timer_sel = LEDC_TIMER_1;
     ConfigPWM2.duty = 0;
-    
+
     ledc_channel_config(&ConfigPWM1);
     ledc_channel_config(&ConfigPWM2);
 
+    vTaskDelay(pdMS_TO_TICKS(20));
 }

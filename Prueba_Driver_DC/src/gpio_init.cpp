@@ -1,4 +1,6 @@
 #include "gpio_init.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 void init_gpio()
 {
@@ -12,4 +14,10 @@ void init_gpio()
     gpio_reset_pin(C3);
     gpio_set_direction(C3, GPIO_MODE_OUTPUT);
 
+    gpio_reset_pin(BT1);
+    gpio_set_direction(BT1, GPIO_MODE_INPUT);
+    gpio_reset_pin(BT2);
+    gpio_set_direction(BT2, GPIO_MODE_INPUT);
+    vTaskDelay(200 / portTICK_PERIOD_MS);
+    
 }
