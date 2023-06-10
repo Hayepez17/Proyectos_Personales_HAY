@@ -1,0 +1,12 @@
+#include "esp_log.h"
+#include "driver/ledc.h"
+#include "esp_err.h"
+
+#define M1 GPIO_NUM_32
+#define M2 GPIO_NUM_14
+
+#define CH1 LEDC_CHANNEL_1
+#define CH2 LEDC_CHANNEL_2
+
+esp_err_t pwm_init(void);
+void set_pwm(char chanel, uint16_t duty);

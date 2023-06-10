@@ -1,12 +1,14 @@
 #include "pwm_init.h"
-
+/*
 void pwm_init(){
 
     ledc_timer_config_t ConfigTimerPWM;
     ConfigTimerPWM.speed_mode = LEDC_HIGH_SPEED_MODE;
-    ConfigTimerPWM.duty_resolution = LEDC_TIMER_10_BIT;
+    ConfigTimerPWM.duty_resolution = LEDC_TIMER_12_BIT;
     ConfigTimerPWM.timer_num = LEDC_TIMER_0;
-    ConfigTimerPWM.freq_hz = 2000;
+    ConfigTimerPWM.freq_hz = 5000;
+    ConfigTimerPWM.clk_cfg = LEDC_USE_APB_CLK;
+
 
     ledc_timer_config(&ConfigTimerPWM);
 
@@ -31,3 +33,4 @@ void pwm_init(){
 
 
 }
+*/
