@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 file(MAKE_DIRECTORY
-  "C:/ESP32/esp-idf/components/bootloader/subproject"
+  "C:/Users/Hale/esp/esp-idf/components/bootloader/subproject"
   "C:/Users/Hale/Documents/Proyectos_Personales_HAY/Project_Robot_Follower_HAY/build/bootloader"
   "C:/Users/Hale/Documents/Proyectos_Personales_HAY/Project_Robot_Follower_HAY/build/bootloader-prefix"
   "C:/Users/Hale/Documents/Proyectos_Personales_HAY/Project_Robot_Follower_HAY/build/bootloader-prefix/tmp"
@@ -17,3 +17,6 @@ set(configSubDirs )
 foreach(subDir IN LISTS configSubDirs)
     file(MAKE_DIRECTORY "C:/Users/Hale/Documents/Proyectos_Personales_HAY/Project_Robot_Follower_HAY/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
 endforeach()
+if(cfgdir)
+  file(MAKE_DIRECTORY "C:/Users/Hale/Documents/Proyectos_Personales_HAY/Project_Robot_Follower_HAY/build/bootloader-prefix/src/bootloader-stamp${cfgdir}") # cfgdir has leading slash
+endif()
