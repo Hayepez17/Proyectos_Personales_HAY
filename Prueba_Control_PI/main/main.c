@@ -26,7 +26,7 @@ extern UINT16_VAL MBCoils;
 extern UINT16_VAL MBDiscreteInputs;
 
 TaskHandle_t xHandle;
-char BUFF[32];
+char BUFF[40];
 
 //**********DIRECCIÓN MAC DEL RESPONDER************************
 
@@ -58,17 +58,21 @@ static esp_err_t init_wifi(void)
 void recv_cb(const esp_now_recv_info_t *esp_now_info, const uint8_t *data, int data_len)
 {
     ESP_LOGI(TAG, "Data recived " MACSTR " %s", MAC2STR(esp_now_info->src_addr), data);
+
+    MBInputRegister[3].Val = atoi(strtok((char *)data, "|")); // "dutym1|dutym2" obtiene el primer valor de la cadena y guarda en variable
+    MBInputRegister[4].Val = atoi(strtok(NULL, "|"));        // "dutym1|dutym2" obtiene el segundo valor de la cadena y guarda en variable
+
 }
 
 void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
     if (status == ESP_NOW_SEND_SUCCESS)
     {
-        ESP_LOGI(TAG, "ESP_NOW_SEND_SUCCESS");
+       // ESP_LOGI(TAG, "ESP_NOW_SEND_SUCCESS");
     }
     else
     {
-        ESP_LOGW(TAG, "ESP_NOW_SEND_FAIL");
+       // ESP_LOGW(TAG, "ESP_NOW_SEND_FAIL");
     }
 }
 
@@ -132,6 +136,7 @@ void Boton(void *pvParameters)
 
         while (gpio_get_level(B1) == 1)
             vTaskDelay(20 / portTICK_PERIOD_MS);
+
         MBCoils.bits.b0 = !MBCoils.bits.b0;
         gpio_set_level(LED2, MBCoils.bits.b0);
 
@@ -145,7 +150,7 @@ void SendDatos(void *pvParameters)
     while (1)
     {
  
-        snprintf(BUFF, sizeof(BUFF), "%i|%u|%u|%u", MBCoils.bits.b0, MBHoldingRegister[2].Val, MBHoldingRegister[0].Val,MBHoldingRegister[1].Val);  // Arreglo cadena de caracteres en forma "ON|tiempo_led"
+        snprintf(BUFF, sizeof(BUFF), "%i|%u|%u|%u|%u|%u|%i", MBCoils.bits.b0, MBHoldingRegister[2].Val, MBHoldingRegister[0].Val, MBHoldingRegister[1].Val, MBInputRegister[0].Val, MBInputRegister[1].Val, MBHoldingRegister[3].Val);  // Arreglo cadena de caracteres en forma "ON|tiempo_led"
         esp_now_send_data(peer_mac, (const uint8_t *)BUFF, 32); // Envía cadena en forma "ON|Vel|Kp|Ki"
     
         vTaskDelay(500 / portTICK_PERIOD_MS);
