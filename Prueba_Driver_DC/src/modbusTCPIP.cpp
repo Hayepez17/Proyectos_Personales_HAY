@@ -11,8 +11,8 @@ WiFiServer server(ModbusTCP_port);
 WiFiClient client;
 
 // Network information
-const char *ssid = "WIFI_HOME_VV";
-const char *password = "C4s4VV001";
+const char *ssid = "wifihector";
+const char *password = "123456789";
 
 //**************************************
 //********* Init WiFi Server ***********

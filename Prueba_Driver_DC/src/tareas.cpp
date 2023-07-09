@@ -11,7 +11,7 @@ extern UINT16_VAL MBInputRegister[maxInputRegister];
 extern UINT16_VAL MBCoils;
 extern UINT16_VAL MBDiscreteInputs;
 
-bool x1 = 0, x2 = 0;
+//bool x1 = 0, x2 = 0;
 uint16_t DutyM1, DutyM2;
 // extern int rssi;
 
@@ -51,10 +51,11 @@ void TareaEntradaDatos(void *Parametro)
         MBInputRegister[0].Val = promedio1;
         MBInputRegister[1].Val = promedio2;
 
-        DutyM1 = promedio1;
-        DutyM2 = promedio2;
+        DutyM1 = MBHoldingRegister[0].Val;
+        DutyM2 = MBHoldingRegister[1].Val;
         set_pwm();
 
+/*
         // Compruebo activación de botones
         if (int b1 = gpio_get_level(BT1) == 0)
         {
@@ -79,7 +80,7 @@ void TareaEntradaDatos(void *Parametro)
 
             vTaskDelay(pdMS_TO_TICKS(200));
         }
-
+*/
         // MBInputRegister[2].Val = promedio3;
         // MBInputRegister[3].Val = rssi;
 
