@@ -17,7 +17,9 @@
     "files.associations": {
         "pid.h": "c",
         "init_pwm.h": "c",
-        "controlpid.h": "c"
+        "controlpid.h": "c",
+        "init_gpio.h": "c",
+        "gpio.h": "c"
     },
     "idf.flashType": "UART"
 }

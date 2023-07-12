@@ -601,6 +601,13 @@ C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build
 C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/PID/CMakeFiles/install.dir
 C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/PID/CMakeFiles/install/local.dir
 C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/PID/CMakeFiles/install/strip.dir
+C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_adc/CMakeFiles/__idf_init_adc.dir
+C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_adc/CMakeFiles/edit_cache.dir
+C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_adc/CMakeFiles/rebuild_cache.dir
+C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_adc/CMakeFiles/list_install_components.dir
+C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_adc/CMakeFiles/install.dir
+C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_adc/CMakeFiles/install/local.dir
+C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_adc/CMakeFiles/install/strip.dir
 C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_gpio/CMakeFiles/__idf_init_gpio.dir
 C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_gpio/CMakeFiles/edit_cache.dir
 C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_gpio/CMakeFiles/rebuild_cache.dir

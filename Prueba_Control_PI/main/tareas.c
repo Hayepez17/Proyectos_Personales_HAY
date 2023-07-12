@@ -1,7 +1,7 @@
 #include "modbus.h"
 #include "init_adc.h"
 #include "init_gpio.h"
-
+/*
 extern UINT16_VAL MBHoldingRegister[maxHoldingRegister];
 extern UINT16_VAL MBInputRegister[maxInputRegister];
 extern UINT16_VAL MBCoils;
@@ -53,4 +53,4 @@ void TareaEntradaDatos(void *Parametro)
 
         vTaskDelay(500 / portTICK_PERIOD_MS);
     }
-}
+}*/

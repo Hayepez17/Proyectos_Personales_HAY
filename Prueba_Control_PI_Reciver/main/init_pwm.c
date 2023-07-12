@@ -54,6 +54,7 @@ void set_pwm(uint16_t duty1, uint16_t duty2, int on)
     
 if (on)
 {
+    
     ledc_set_duty(LEDC_HIGH_SPEED_MODE, CM1, duty1);
     ledc_update_duty(LEDC_HIGH_SPEED_MODE, CM1);
     vTaskDelay(pdMS_TO_TICKS(10));

@@ -2,7 +2,7 @@
 #include "init_adc.h"
 
 static char *tag = "init ADC";
-
+/*
 esp_err_t init_adc(void)
 {
     adc1_config_width(ADC_WIDTH_BIT_9);
@@ -13,3 +13,4 @@ esp_err_t init_adc(void)
     ESP_LOGI(tag, "init ADC completed");
     return ESP_OK;
 }
+*/

@@ -399,6 +399,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_adc/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("C:/Users/Hale/Documents/Proyectos_Personales_HAY/Prueba_Control_PI_Reciver/build/esp-idf/init_gpio/cmake_install.cmake")
 endif()
 

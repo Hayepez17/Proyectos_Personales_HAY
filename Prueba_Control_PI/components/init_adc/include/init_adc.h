@@ -7,4 +7,4 @@
 
 #define NumeroMuestras 60
 
-esp_err_t init_adc(void);
+//esp_err_t init_adc(void);

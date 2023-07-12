@@ -57,11 +57,11 @@ static esp_err_t init_wifi(void)
 
 void recv_cb(const esp_now_recv_info_t *esp_now_info, const uint8_t *data, int data_len)
 {
-    ESP_LOGI(TAG, "Data recived " MACSTR " %s", MAC2STR(esp_now_info->src_addr), data);
+    //ESP_LOGI(TAG, "Data recived " MACSTR " %s", MAC2STR(esp_now_info->src_addr), data);
 
-    MBInputRegister[3].Val = atoi(strtok((char *)data, "|")); // "dutym1|dutym2" obtiene el primer valor de la cadena y guarda en variable
-    MBInputRegister[4].Val = atoi(strtok(NULL, "|"));        // "dutym1|dutym2" obtiene el segundo valor de la cadena y guarda en variable
-
+    MBInputRegister[0].Val = atoi(strtok((char *)data, "|")); // "dutym1|dutym2|sensor1|sensor2" obtiene el primer valor de la cadena y guarda en variable
+    MBInputRegister[1].Val = atoi(strtok(NULL, "|"));        // "dutym1|dutym2|sensor1|sensor2" obtiene el segundo valor de la cadena y guarda en variable
+    
 }
 
 void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
@@ -116,11 +116,11 @@ void app_main(void)
     ESP_ERROR_CHECK(register_peer(peer_mac));
 
     initUART0(); // inicializo uart0
-    init_adc();  // inicializo ADCs
+    //init_adc();  // inicializo ADCs
     init_gpio(); // inicializo salidas
-    xTaskCreatePinnedToCore(Boton, "Boton", 1024, NULL, 12, NULL, 0);
-    xTaskCreatePinnedToCore(SendDatos, "Envio ESPNOW", 1024 * 5, NULL, 12, NULL, 0);
-    xTaskCreatePinnedToCore(TareaEntradaDatos, "Tarea_para_entrada1", 1024 * 5, NULL, 12, NULL, 1); // creo tarea1
+    xTaskCreatePinnedToCore(Boton, "Boton", 1024, NULL, 1, NULL, 0);
+    xTaskCreatePinnedToCore(SendDatos, "Envio ESPNOW", 1024 * 5, NULL, 1, NULL, 0);
+    //xTaskCreatePinnedToCore(TareaEntradaDatos, "Tarea_para_entrada1", 1024 * 5, NULL, 1, NULL, 1); // creo tarea1
 }
 
 //*********************FUNCIÓN DE TAREAS*************************
@@ -150,9 +150,11 @@ void SendDatos(void *pvParameters)
     while (1)
     {
  
-        snprintf(BUFF, sizeof(BUFF), "%i|%u|%u|%u|%u|%u|%i", MBCoils.bits.b0, MBHoldingRegister[2].Val, MBHoldingRegister[0].Val, MBHoldingRegister[1].Val, MBInputRegister[0].Val, MBInputRegister[1].Val, MBHoldingRegister[3].Val);  // Arreglo cadena de caracteres en forma "ON|tiempo_led"
+        snprintf(BUFF, sizeof(BUFF), "%i|%u|%u|%u|%i|%i|%i", MBCoils.bits.b0, MBHoldingRegister[2].Val, MBHoldingRegister[0].Val, MBHoldingRegister[1].Val, MBCoils.bits.b1, MBCoils.bits.b2, MBHoldingRegister[3].Val);  // Arreglo cadena de caracteres en forma "ON|tiempo_led"
         esp_now_send_data(peer_mac, (const uint8_t *)BUFF, 32); // Envía cadena en forma "ON|Vel|Kp|Ki"
     
+
+    gpio_set_level(LED2, MBCoils.bits.b0);
         vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 }

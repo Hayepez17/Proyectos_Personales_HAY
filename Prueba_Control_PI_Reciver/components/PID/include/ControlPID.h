@@ -1,8 +1,9 @@
 #ifndef PID_H
 #define PID_H
 
-
+#include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "esp_log.h"
 #include "esp_err.h"
 

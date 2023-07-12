@@ -1,8 +1,1 @@
-0000000000000000000000000000000000000000 abfe79f16b293c194d289bdb6d840b257a9fdc60 Hayepez17 <hayepez17@gmail.com> 1686131734 -0400	clone: from https://github.com/Hayepez17/Proyectos_Personales_HAY.git
-abfe79f16b293c194d289bdb6d840b257a9fdc60 4e6142093660408bbe5afd263adbd885144f148d Hayepez17 <hayepez17@gmail.com> 1686439730 -0400	commit: Agrego control de tracción mediante Bluetooth
-4e6142093660408bbe5afd263adbd885144f148d 12fc0e0534ddcc243d1cf412b1d31d873115b37c Hayepez17 <hayepez17@gmail.com> 1686440517 -0400	commit: commint inicial
-12fc0e0534ddcc243d1cf412b1d31d873115b37c 32ac99ff032f928faa0406c6be80baead5ac4125 Hayepez17 <hayepez17@gmail.com> 1686444050 -0400	commit: Código inicial para prueba de driver DC
-32ac99ff032f928faa0406c6be80baead5ac4125 8c407f2b86f2cac98cbaa1f34c8e0040f3d47252 Hayepez17 <hayepez17@gmail.com> 1686498160 -0400	commit: Actualización de código a versión esp idf 5.0.2
-8c407f2b86f2cac98cbaa1f34c8e0040f3d47252 3e00b29489d6bdad6f6b8f207d290a7d879bfa2c Hayepez17 <hayepez17@gmail.com> 1686498525 -0400	commit: elimino test
-3e00b29489d6bdad6f6b8f207d290a7d879bfa2c f17acdfd3abbc58a57caa383fa71c68c9bfce712 Hayepez17 <hayepez17@gmail.com> 1686538051 -0400	commit: elimino archivos extras
-f17acdfd3abbc58a57caa383fa71c68c9bfce712 d4ef5bcad4fd8006a1342b6e7902ffab2f078b6a Hayepez17 <hayepez17@gmail.com> 1688537381 -0400	commit: Código para prueba PI (Master Iniciator)
+e3af95e86cc49e8614c31d6a4574e944e53dc418
