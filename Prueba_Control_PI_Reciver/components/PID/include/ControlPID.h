@@ -7,6 +7,8 @@
 #include "esp_log.h"
 #include "esp_err.h"
 
+//const float EULER = 2.718281828459045;
+
 typedef struct _PIDdata {
 
     float _input_prev;

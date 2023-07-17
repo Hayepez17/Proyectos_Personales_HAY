@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #include "nvs_flash.h"
 #include "esp_event.h"
@@ -27,14 +28,16 @@
 
 QueueHandle_t xQueue;
 
+TaskHandle_t xHandle;
+
 // buffer esp now send
 
 char BUFF[32];
 
 // Mac addres peer esp now
 
-//static uint8_t peer_mac[ESP_NOW_ETH_ALEN] = {0xc8, 0xf0, 0x9e, 0xf1, 0x6b, 0x10};
- static uint8_t peer_mac[ESP_NOW_ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+// static uint8_t peer_mac[ESP_NOW_ETH_ALEN] = {0xc8, 0xf0, 0x9e, 0xf1, 0x6b, 0x10};
+static uint8_t peer_mac[ESP_NOW_ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 // etiquetas
 
@@ -45,7 +48,9 @@ static char *TAG = "esp_now_resp";
 typedef struct
 {
     bool ON;
-    uint16_t Vel;
+    uint16_t VelMax;
+    uint16_t VelMin;
+    float KV;
     float KP;
     float KI;
     bool Sentido1;
@@ -57,6 +62,8 @@ Datos CtrlData;
 
 uint16_t dutym1;
 uint16_t dutym2;
+
+const float EULER = 2.718281828459045;
 //******************PROTOTIPO DE FUNCIONES********************
 
 static esp_err_t esp_now_send_data(const uint8_t *peer_addr, const uint8_t *data, size_t len);
@@ -88,15 +95,22 @@ void recv_cb(const esp_now_recv_info_t *esp_now_info, const uint8_t *data, int d
     ESP_LOGI(TAG, "Data recived " MACSTR " %s", MAC2STR(esp_now_info->src_addr), data);
 
     CtrlData.ON = atoi(strtok((char *)data, "|"));  // "ON|Vel|KP|KI|S1|S2|offset" obtiene el primer valor de la cadena y guarda en variable
-    CtrlData.Vel = atoi(strtok(NULL, "|"));         // "ON|Vel|KP|KI|S1|S2|offset" obtiene el segundo valor de la cadena y guarda en variable
+    CtrlData.VelMax = atoi(strtok(NULL, "|"));      // "ON|Vel|KP|KI|S1|S2|offset" obtiene el segundo valor de la cadena y guarda en variable
+    CtrlData.VelMin = atoi(strtok(NULL, "|"));      // "ON|Vel|KP|KI|S1|S2|offset" obtiene el segundo valor de la cadena y guarda en variable
+    CtrlData.KV = atoi(strtok(NULL, "|")) / 1000.0f; // "ON|Vel|KP|KI|S1|S2|offset" obtiene el tercer valor de la cadena y guarda en variable
     CtrlData.KP = atoi(strtok(NULL, "|")) / 100.0f; // "ON|Vel|KP|KI|S1|S2|offset" obtiene el tercer valor de la cadena y guarda en variable
-    CtrlData.KI = atoi(strtok(NULL, "|")) / 100.0f; // "ON|Vel|KP|KI|S1|S2|offset" obtiene el cuarto valor de la cadena y guarda en variable
+    CtrlData.KI = atoi(strtok(NULL, "|")) / 1000.0f; // "ON|Vel|KP|KI|S1|S2|offset" obtiene el cuarto valor de la cadena y guarda en variable
     CtrlData.Sentido1 = atoi(strtok(NULL, "|"));    // "ON|Vel|KP|KI|S1|S2|offset" obtiene el quinto valor de la cadena y guarda en variable
     CtrlData.Sentido2 = atoi(strtok(NULL, "|"));    // "ON|Vel|KP|KI|S1|S2|offset" obtiene el sexto valor de la cadena y guarda en variable
     CtrlData.offset = atoi(strtok(NULL, "|"));      // "ON|Vel|KP|KI|S1|S2|offset" obtiene el septimo valor de la cadena y guarda en variable
 
     snprintf(BUFF, sizeof(BUFF), "%u|%u", dutym1, dutym2);  // Arreglo cadena de caracteres en forma "dutym1|dutym2"
     esp_now_send_data(peer_mac, (const uint8_t *)BUFF, 32); // Envía cadena en forma "dutym1|dutym2"
+
+    if (CtrlData.ON)
+    {
+        vTaskResume(xHandle);
+    }
 }
 
 void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
@@ -155,10 +169,21 @@ void TareaEntradaDatos(void *Parametro)
     {
         DatosTX.Sensor1 = gpio_get_level(IN1);
         DatosTX.Sensor2 = gpio_get_level(IN2);
+        /*
+                if (DatosTX.Sensor1 == 1 && DatosTX.Sensor2 == 1)
+                {
+                    gpio_set_level(OUT1, 0);
+                    gpio_set_level(OUT2, 0);
+                    gpio_set_level(OUT3, 0);
+                    gpio_set_level(OUT4, 0);
 
+                    vTaskDelay(1 / portTICK_PERIOD_MS);
+                }
+                else
+                    xQueueSend(xQueue, &DatosTX, portMAX_DELAY);
+        */
         xQueueSend(xQueue, &DatosTX, portMAX_DELAY);
-
-        vTaskDelay(200 / portTICK_PERIOD_MS);
+        // vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 
     /*
@@ -207,6 +232,8 @@ void ControlM(void *pvParameters)
 
     float error;
     float correccion;
+    float velM;
+    float pot;
     Data_IN DatosRX;
 
     while (1)
@@ -218,8 +245,11 @@ void ControlM(void *pvParameters)
             error = 10.0 * DatosRX.Sensor2 - 10.0 * DatosRX.Sensor1;
             correccion = PID_Update(p_pid_data, error);
 
-            dutym1 = CtrlData.Vel - (correccion + CtrlData.offset);
-            dutym2 = CtrlData.Vel + (correccion + CtrlData.offset);
+            pot = -1.0 * CtrlData.KV * fabs(error * CtrlData.KP);
+            velM = CtrlData.VelMin + (CtrlData.VelMax - CtrlData.VelMin) * pow(EULER, pot);
+
+            dutym1 = velM - (correccion + CtrlData.offset);
+            dutym2 = velM + (correccion + CtrlData.offset);
             /*
                         if (dutym1 < 370)
                             dutym1 = 370;
@@ -235,11 +265,20 @@ void ControlM(void *pvParameters)
                         // ESP_LOGI(TAG, "error:%f  coreccion: %f\n",error , correccion);
             */
             set_pwm(dutym1, dutym2, CtrlData.ON);
-           
 
             if (CtrlData.ON)
             {
-                if (CtrlData.Sentido1 == 0)
+                if (DatosRX.Sensor2 == 1 && DatosRX.Sensor1 == 1)
+                {
+                    gpio_set_level(OUT1, 0);
+                    gpio_set_level(OUT2, 0);
+                    gpio_set_level(OUT3, 0);
+                    gpio_set_level(OUT4, 0);
+                }
+
+                else
+                {
+                    if (CtrlData.Sentido1 == 0)
                 {
 
                     gpio_set_level(OUT1, 0);
@@ -262,6 +301,8 @@ void ControlM(void *pvParameters)
                     gpio_set_level(OUT3, 1);
                     gpio_set_level(OUT4, 0);
                 }
+                }
+                
             }
             else
             {
@@ -269,6 +310,8 @@ void ControlM(void *pvParameters)
                 gpio_set_level(OUT2, 0);
                 gpio_set_level(OUT3, 0);
                 gpio_set_level(OUT4, 0);
+
+                vTaskSuspend(xHandle);
             }
 
             ESP_LOGI(TAG, "%u|%u", dutym1, dutym2);
@@ -295,8 +338,8 @@ void app_main(void)
 
     if (xQueue != NULL)
     {
-        xTaskCreatePinnedToCore(TareaEntradaDatos, "Sigue linea", 1024 * 5, NULL, 1, NULL, 0);
-        xTaskCreatePinnedToCore(ControlM, "PID", 1024 * 5, NULL, 1, NULL, 0);
+        xTaskCreatePinnedToCore(TareaEntradaDatos, "Sigue linea", 1024 * 5, NULL, 1, &xHandle, 0);
+        xTaskCreatePinnedToCore(ControlM, "PID", 1024 * 5, NULL, 1, NULL, 1);
     }
     else
     {

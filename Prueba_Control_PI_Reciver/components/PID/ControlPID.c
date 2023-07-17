@@ -33,11 +33,11 @@ void PID_Init(ptrPIDdata pPd)
     pPd->Ierr = 0.0f;
     pPd->Derr = 0.0f;
 
-    pPd->Perrmin = -1000.0f;
-    pPd->Perrmax = 5000.0f;
+    pPd->Perrmin = -50.0f;
+    pPd->Perrmax = 100.0f;
 
-    pPd->Ierrmin = -1000.0f;
-    pPd->Ierrmax = 5000.0f;
+    pPd->Ierrmin = -50.0f;
+    pPd->Ierrmax = 100.0f;
 
     // memcpy(pPd, p_pid_defaults, sizeof(PIDdata));
 }
@@ -100,10 +100,7 @@ float PID_Update(ptrPIDdata pPd, float input)
 
     // compute I error
     pPd->Ierr += pPd->Perr;
-if ((pPd->Ierr * pPd->Perr) < 0.0f)
-{
-    PID_ResetIerr(p_pid_data);
-}
+    //if ((pPd->Ierr * pPd->Perr) < 0.0f) PID_ResetIerr(p_pid_data);
 
     if (pPd->Ierr < pPd->Ierrmin)
     {

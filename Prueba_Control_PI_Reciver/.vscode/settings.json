@@ -19,7 +19,13 @@
         "init_pwm.h": "c",
         "controlpid.h": "c",
         "init_gpio.h": "c",
-        "gpio.h": "c"
+        "gpio.h": "c",
+        "bit": "c",
+        "*.tcc": "c",
+        "cmath": "c",
+        "complex": "c",
+        "random": "c",
+        "math.h": "c"
     },
     "idf.flashType": "UART"
 }

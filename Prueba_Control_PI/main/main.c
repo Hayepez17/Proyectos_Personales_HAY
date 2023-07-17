@@ -26,7 +26,7 @@ extern UINT16_VAL MBCoils;
 extern UINT16_VAL MBDiscreteInputs;
 
 TaskHandle_t xHandle;
-char BUFF[40];
+char BUFF[45];
 
 //**********DIRECCIÓN MAC DEL RESPONDER************************
 
@@ -150,8 +150,8 @@ void SendDatos(void *pvParameters)
     while (1)
     {
  
-        snprintf(BUFF, sizeof(BUFF), "%i|%u|%u|%u|%i|%i|%i", MBCoils.bits.b0, MBHoldingRegister[2].Val, MBHoldingRegister[0].Val, MBHoldingRegister[1].Val, MBCoils.bits.b1, MBCoils.bits.b2, MBHoldingRegister[3].Val);  // Arreglo cadena de caracteres en forma "ON|tiempo_led"
-        esp_now_send_data(peer_mac, (const uint8_t *)BUFF, 32); // Envía cadena en forma "ON|Vel|Kp|Ki"
+        snprintf(BUFF, sizeof(BUFF), "%i|%u|%u|%u|%u|%u|%i|%i|%i", MBCoils.bits.b0, MBHoldingRegister[2].Val, MBHoldingRegister[3].Val, MBHoldingRegister[4].Val, MBHoldingRegister[0].Val, MBHoldingRegister[1].Val, MBCoils.bits.b1, MBCoils.bits.b2, MBHoldingRegister[5].Val);  // Arreglo cadena de caracteres en forma "ON|tiempo_led"
+        esp_now_send_data(peer_mac, (const uint8_t *)BUFF, 45); // Envía cadena en forma "ON|Vel|Kp|Ki"
     
 
     gpio_set_level(LED2, MBCoils.bits.b0);
