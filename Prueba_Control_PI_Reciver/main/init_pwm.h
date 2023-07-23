@@ -10,5 +10,16 @@
 #define CM1 LEDC_CHANNEL_0
 #define CM2 LEDC_CHANNEL_1
 
+#define portTICK_PERIOD_US              ( ( TickType_t ) 1000000 / configTICK_RATE_HZ )
+
+enum DIRECCTIONS
+    {
+        STOP,
+        FORWARD,
+        LEFT,
+        RIGHT,
+        BACK
+    };
+
 esp_err_t init_pwm(void);
-void set_pwm(uint16_t duty1, uint16_t duty2, int on);
+void set_pwm(uint16_t duty1, uint16_t duty2);

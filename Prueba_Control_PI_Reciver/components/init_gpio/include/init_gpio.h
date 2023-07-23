@@ -17,4 +17,6 @@ typedef struct
 {
     bool Sensor1;
     bool Sensor2;
+    bool F_LEFT;
+    bool F_RIGHT;
 } Data_IN;
