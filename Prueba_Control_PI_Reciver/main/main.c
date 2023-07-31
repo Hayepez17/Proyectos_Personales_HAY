@@ -24,9 +24,9 @@
 #define ESP_CHANNEL 1
 #define VelSpinR 165
 #define VelSpinL 200
-#define Dutyarranque 200
+#define Dutyarranque 220
 #define max_time_us 100000
-#define offset -12
+#define offset -13
 #define timeout_expired(start, len) ((esp_timer_get_time() - (start)) >= (len))
 
 // Queue parameters
@@ -282,7 +282,7 @@ void ControlM(void *pvParameters)
                 error = 10.0 * DatosRX.Sensor2 - 10.0 * DatosRX.Sensor1;
                 correccion = PID_Update(p_pid_data, error);
 
-                pot = -1.0 * CtrlData.KV * fabs(correccion);
+                pot = -1.0 * CtrlData.KV * fabs(error*CtrlData.KP);
                 velM = CtrlData.VelMin + (CtrlData.VelMax - CtrlData.VelMin) * pow(EULER, pot);
 
                 dutym1 = velM - (correccion + offset);
@@ -411,7 +411,7 @@ void arranque(uint16_t DutyNom1, uint16_t DutyNom2)
         else
         {
             set_pwm(Dutyarranque, Dutyarranque);
-            vTaskDelay(100 / portTICK_PERIOD_US);
+            vTaskDelay(500 / portTICK_PERIOD_US);
             set_pwm(DutyNom1, DutyNom2); /* code */
             reposo = 0;
         }

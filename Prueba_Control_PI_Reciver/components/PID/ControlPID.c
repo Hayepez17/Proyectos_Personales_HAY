@@ -36,8 +36,8 @@ void PID_Init(ptrPIDdata pPd)
     pPd->Perrmin = -1000.0f;
     pPd->Perrmax = 1000.0f;
 
-    pPd->Ierrmin = -1000.0f;
-    pPd->Ierrmax = 1000.0f;
+    pPd->Ierrmin = -10000.0f;
+    pPd->Ierrmax = 10000.0f;
 
     // memcpy(pPd, p_pid_defaults, sizeof(PIDdata));
 }
