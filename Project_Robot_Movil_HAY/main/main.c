@@ -18,7 +18,7 @@
 #include "ControlPID.h"
 #include "ultrasonic.h"
 
-#define TRIGGER_GPIO GPIO_NUM_25
+#define TRIGGER_GPIO GPIO_NUM_32
 #define ECHO_GPIO GPIO_NUM_26
 
 // server parameters
@@ -31,10 +31,12 @@ struct async_resp_arg
 };
 
 // Queue parameters
-#define ITEM_SIZE sizeof(Datos)
+#define ITEM_SIZE1 sizeof(Datos)
+#define ITEM_SIZE2 sizeof(Data_IN)
 #define QUEUE_LENGTH 1
 
-QueueHandle_t xQueue;
+QueueHandle_t xQueue1;
+QueueHandle_t xQueue2;
 
 TaskHandle_t xHandle1;
 TaskHandle_t xHandle2;
@@ -57,7 +59,6 @@ int led_state = 0;
 bool state_mode;
 const float EULER = 2.718281828459045;
 uint32_t UltraData;
-Datos CtrlData;
 
 int16_t dutym1;
 int16_t dutym2;
@@ -149,6 +150,7 @@ static esp_err_t trigger_async_send(httpd_handle_t handle, httpd_req_t *req)
 
 static esp_err_t handle_ws_req(httpd_req_t *req)
 {
+    Datos DatosTx;
     if (req->method == HTTP_GET)
     {
         ESP_LOGI(TAG, "Handshake done, the new connection was opened");
@@ -187,14 +189,17 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     }
 
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
+
     sprintf(BUFF, "%s", ws_pkt.payload);
+
     if (ws_pkt.len < 4)
     {
 
         printf(BUFF);
         free(buf);
-        CtrlData.button = atoi(strtok(BUFF, "|"));
-        CtrlData.state_button = atoi(strtok(NULL, "|"));
+        DatosTx.button = atoi(strtok(BUFF, "|"));
+        DatosTx.state_button = atoi(strtok(NULL, "|"));
+        xQueueSend(xQueue1, &DatosTx, portMAX_DELAY);
         // return trigger_async_send(req->handle, req);
     }
     else
@@ -246,26 +251,28 @@ httpd_handle_t setup_websocket_server(void)
 
 void set_mode(const char *MODE)
 {
-    Data_IN DatosTx;
+    Datos DatosTx;
+    Data_IN DatosRx;
+
     switch (MODE[0])
     {
     case 'M':
         state_mode = 0;
-        tiempo_led = 500;
-        vTaskSuspend(xHandle2);
+        if (uxQueueSpacesAvailable(xQueue2))
+        {
+            xQueueReceive(xQueue2,&DatosRx,portMAX_DELAY);
+        }
         vTaskSuspend(xHandle3);
-        vTaskSuspend(xHandle4);
         gpio_set_level(LED2, 1);
-        xQueueSend(xQueue, &DatosTx, portMAX_DELAY);
         printf(MODE);
+        xQueueSend(xQueue1, &DatosTx, portMAX_DELAY);
 
         break;
 
     case 'A':
         state_mode = 1;
-        vTaskResume(xHandle2);
+        tiempo_led = 500;
         vTaskResume(xHandle3);
-        vTaskResume(xHandle4);
         printf(MODE);
         break;
 
@@ -286,6 +293,7 @@ void SetDirecction(int x)
         gpio_set_level(OUT3, 0);
         gpio_set_level(OUT4, 0);
         set_pwm(0, 0);
+        reposo = 1;
 
         break;
 
@@ -324,20 +332,27 @@ void SetDirecction(int x)
 
 void arranque(uint16_t DutyNom1, uint16_t DutyNom2)
 {
-    if (DutyNom1 == 0)
-        set_pwm(0, Dutyarranque);
-    else
+    if (reposo)
     {
-        if (DutyNom2 == 0)
-            set_pwm(Dutyarranque, 0);
+        if (DutyNom1 == 0)
+            set_pwm(0, Dutyarranque);
         else
         {
-            set_pwm(Dutyarranque, Dutyarranque);
-            vTaskDelay(500 / portTICK_PERIOD_US);
-            set_pwm(DutyNom1, DutyNom2); /* code */
-            reposo = 0;
+            if (DutyNom2 == 0)
+                set_pwm(Dutyarranque, 0);
+            else
+            {
+                set_pwm(Dutyarranque, Dutyarranque);
+                set_pwm(DutyNom1, DutyNom2); /* code */
+                reposo = 0;
+            }
         }
     }
+    else
+    {
+        set_pwm(DutyNom1, DutyNom2);
+    }
+    vTaskDelay(100 / portTICK_PERIOD_US);
 }
 
 uint16_t InDataADC(void)
@@ -362,14 +377,17 @@ uint16_t InDataADC(void)
 
 /**********************Tasks***************************/
 
-void BlinkLed(void *Parametro)
+void BlinkLed(void *pvParameters)
 {
     int ON = 0;
 
     while (1)
     {
-        ON = !ON;
-        gpio_set_level(LED2, ON);
+        if (state_mode)
+        {
+            ON = !ON;
+            gpio_set_level(LED2, ON);
+        }
         vTaskDelay(tiempo_led / portTICK_PERIOD_MS);
     }
 }
@@ -377,83 +395,82 @@ void BlinkLed(void *Parametro)
 void ControlM(void *pvParameters)
 {
 
+    Datos DatosRx;
+    DatosRx.state_button = 0;
+    DatosRx.button = 0;
+
+    while (1)
+    {
+        if (xQueueReceive(xQueue1, &DatosRx, portMAX_DELAY) == pdPASS)
+        {
+            if (!state_mode)
+            {
+                if (DatosRx.state_button)
+                {
+                    if (DatosRx.button == 0)
+                        SetDirecction(FORWARD);
+                    if (DatosRx.button == 1)
+                        SetDirecction(LEFT);
+                    if (DatosRx.button == 2)
+                        SetDirecction(BACK);
+                    if (DatosRx.button == 3)
+                        SetDirecction(RIGHT);
+                    arranque(200 - offset, 200 + offset);
+                }
+                else
+                {
+                    SetDirecction(STOP);
+                }
+            }
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+        }
+        else vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+void ControlA(void *pvParameters)
+{
     float error;
     float correccion;
     float velM;
     float pot;
 
     Data_IN DatosRx;
-
     while (1)
     {
-        if (!state_mode)
-        {
-            if (CtrlData.state_button)
-            {
 
-                if (CtrlData.button == 0)
-                    SetDirecction(FORWARD);
-                if (CtrlData.button == 1)
-                    SetDirecction(RIGHT);
-                if (CtrlData.button == 2)
-                    SetDirecction(BACK);
-                if (CtrlData.button == 3)
-                    SetDirecction(LEFT);
-                arranque(200, 200);
+        if (xQueueReceive(xQueue2, &DatosRx, portMAX_DELAY) == pdPASS)
+        {
+            if ((DatosRx.Sensor1 == 1 && DatosRx.Sensor2 == 1) || UltraData < 15)
+            {
+                SetDirecction(STOP);
+                tiempo_led = 50;
+                // printf("sensor1: %i sensor2: %i ultra: %lu \n",DatosRx.Sensor1,DatosRx.Sensor2,UltraData);
+                vTaskDelay(100 / portTICK_PERIOD_MS);
             }
             else
             {
+                tiempo_led = 500;
+                error = 10.0 * DatosRx.Sensor1 - 10.0 * DatosRx.Sensor2;
+                correccion = PID_Update(p_pid_data, error);
 
-                SetDirecction(STOP);
-                reposo = 1;
-            }
+                pot = -1.0 * Kv * fabs(error * KP);
+                velM = VelMin + (VelMax - VelMin) * pow(EULER, pot);
 
-            vTaskDelay(100 / portTICK_PERIOD_MS);
-        }
-        else
-        {
+                dutym1 = velM - (correccion + offset);
+                dutym2 = velM + (correccion + offset);
 
-            if (xQueueReceive(xQueue, &DatosRx, portMAX_DELAY) == pdPASS)
-            {
-                if ((DatosRx.Sensor1 == 1 && DatosRx.Sensor2 == 1) || UltraData < 15)
-                {
-                    SetDirecction(STOP);
-                    reposo = 1;
-                    tiempo_led = 50;
-                    // printf("sensor1: %i sensor2: %i ultra: %lu \n",DatosRx.Sensor1,DatosRx.Sensor2,UltraData);
-                    vTaskDelay(10 / portTICK_PERIOD_MS);
-                }
-                else
-                {
-                    tiempo_led = 500;
-                    PID_Coefficients(p_pid_data, 0.0, KP, KI, 0.0);
+                if (dutym1 < 50)
+                    dutym1 = 0;
+                if (dutym2 < 50)
+                    dutym2 = 0;
 
-                    error = 10.0 * DatosRx.Sensor1 - 10.0 * DatosRx.Sensor2;
-                    correccion = PID_Update(p_pid_data, error);
+                arranque(dutym1, dutym2);
 
-                    pot = -1.0 * Kv * fabs(error * KP);
-                    velM = VelMin + (VelMax - VelMin) * pow(EULER, pot);
-
-                    dutym1 = velM - (correccion + offset);
-                    dutym2 = velM + (correccion + offset);
-
-                    if (dutym1 < 50)
-                        dutym1 = 0;
-                    if (dutym2 < 50)
-                        dutym2 = 0;
-
-                    if (reposo)
-                    {
-                        arranque(dutym1, dutym2);
-                    }
-
-                    else
-                        set_pwm(dutym1, dutym2);
-
-                    SetDirecction(FORWARD);
-                }
+                SetDirecction(FORWARD);
             }
         }
+        else vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
@@ -466,8 +483,8 @@ void DataIn(void *pvParameters)
 
         DatosTx.Sensor1 = gpio_get_level(IN1);
         DatosTx.Sensor2 = gpio_get_level(IN2);
-        xQueueSend(xQueue, &DatosTx, portMAX_DELAY);
-        vTaskDelay(500 / portTICK_PERIOD_US);
+        xQueueSend(xQueue2, &DatosTx, portMAX_DELAY);
+        vTaskDelay(100 / portTICK_PERIOD_US);
     }
 }
 
@@ -482,31 +499,35 @@ void DatosUltra(void *pvParameters)
 
     while (1)
     {
-        esp_err_t res = ultrasonic_measure_cm(&sensorU, MAX_DISTANCE_CM, &distance);
-        if (res != ESP_OK)
+        if (state_mode == 1)
         {
-            printf("Error %d: ", res);
-            switch (res)
+            esp_err_t res = ultrasonic_measure_cm(&sensorU, MAX_DISTANCE_CM, &distance);
+            if (res != ESP_OK)
             {
-            case ESP_ERR_ULTRASONIC_PING:
-                printf("Cannot ping (device is in invalid state)\n");
-                break;
-            case ESP_ERR_ULTRASONIC_PING_TIMEOUT:
-                printf("Ping timeout (no device found)\n");
-                break;
-            case ESP_ERR_ULTRASONIC_ECHO_TIMEOUT:
-                printf("Echo timeout (i.e. distance too big)\n");
-                distance = MAX_DISTANCE_CM;
-                break;
-            default:
-                printf("%s\n", esp_err_to_name(res));
+                printf("Error %d: ", res);
+                switch (res)
+                {
+                case ESP_ERR_ULTRASONIC_PING:
+                    printf("Cannot ping (device is in invalid state)\n");
+                    break;
+                case ESP_ERR_ULTRASONIC_PING_TIMEOUT:
+                    printf("Ping timeout (no device found)\n");
+                    break;
+                case ESP_ERR_ULTRASONIC_ECHO_TIMEOUT:
+                    printf("Echo timeout (i.e. distance too big)\n");
+                    distance = MAX_DISTANCE_CM;
+                    break;
+                default:
+                    printf("%s\n", esp_err_to_name(res));
+                }
             }
+            // printf("Distance: %lu cm\n", distance);
+
+            UltraData = distance;
+
+            vTaskDelay(100 / portTICK_PERIOD_MS);
         }
-        printf("Distance: %lu cm\n", distance);
-
-        UltraData = distance;
-
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+        else vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
@@ -535,15 +556,17 @@ void app_main()
         ESP_ERROR_CHECK(init_pwm());
         ESP_ERROR_CHECK(init_adc());
         PID_Init(p_pid_data);
+        PID_Coefficients(p_pid_data, 0.0, KP, KI, 0.0);
         reposo = 1;
-        CtrlData.state_button = 0;
-        xQueue = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE);
+        xQueue1 = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE1);
+        xQueue2 = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE2);
 
-        if (xQueue != NULL)
+        if (xQueue1 != NULL && xQueue2 != NULL)
         {
-            xTaskCreatePinnedToCore(BlinkLed, "led_mode", 1024, NULL, 1, &xHandle2, 1);
-            xTaskCreatePinnedToCore(ControlM, "controlpwm", 1024 * 10, NULL, 1, &xHandle1, 1);
-            xTaskCreatePinnedToCore(DataIn, "Datos de para control", 1024 * 5, NULL, 1, &xHandle3, 1);
+            xTaskCreatePinnedToCore(BlinkLed, "led_mode", 1024, NULL, 1, NULL, 1);
+            xTaskCreatePinnedToCore(ControlM, "control modo manual", 1024 * 10, NULL, 1, &xHandle1, 1);
+            xTaskCreatePinnedToCore(ControlA, "control modo automatico", 1024 * 10, NULL, 1, &xHandle2, 1);
+            xTaskCreatePinnedToCore(DataIn, "Datos entrada control", 1024 * 5, NULL, 1, &xHandle3, 1);
             xTaskCreatePinnedToCore(DatosUltra, "Actualización de lectura ultrasonido", 1024 * 5, NULL, 1, &xHandle4, 1);
         }
         else

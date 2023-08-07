@@ -10,11 +10,11 @@
 #include "esp_log.h"
 #include "esp_err.h"
 
-#define KP 300
-#define KI 1
-#define Kv 30
-#define offset -13
-#define VelMax 185
+#define KP 0.3f
+#define KI 0.001f
+#define Kv 0.03f
+#define offset -5
+#define VelMax 195
 #define VelMin 140
 #define Dutyarranque 220
 

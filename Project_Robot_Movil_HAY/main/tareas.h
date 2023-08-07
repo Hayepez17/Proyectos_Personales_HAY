@@ -1,8 +1,10 @@
 void ControlM(void *pvParameters);
-void DatosUltra(void *pvParameters);
+void ControlA(void *pvParameters);
 void DataIn(void *pvParameters);
+void BlinkLed(void *pvParameters);
+void UltraAuto(void *pvParameters);
+uint16_t UltraIn(void);
 uint16_t InDataADC(void);
-void BlinkLed(void *Parametro);
 void arranque(uint16_t DutyNom1, uint16_t DutyNom2);
 void SetDirecction(int x);
 void set_mode(const char* MODE);

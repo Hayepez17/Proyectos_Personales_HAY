@@ -263,12 +263,15 @@
 
     /* Buttons */
 
+
     .buttons-container {
-        bottom: 40px;
-        height: 200px;
-        right: 40px;
+        /* bottom: 40px; */
+        top: 177px;
+        height: 60px;
+        right: 160px;
         position: absolute;
-        width: 160px;
+        margin: 5px;
+        width: 125px;
     }
 
     .button-backdrop {
@@ -276,7 +279,7 @@
         border-radius: 5px;
         height: 60px;
         position: relative;
-        width: 60px;
+        width: 125px;
     }
 
     .button-backdrop+.button-backdrop {
@@ -291,7 +294,7 @@
         left: 5px;
         position: absolute;
         top: 5px;
-        width: 50px;
+        width: 115px;
     }
 
     .button.active {
@@ -299,14 +302,23 @@
     }
 
     .icon {
+        right: 32px;
         display: inline-block;
         fill: #F4FF81;
-        height: 30px;
-        width: 30px;
+        position: absolute;
+        height: 50px;
+        width: 50px;
+    }
+
+    .path1 {
+        display: inline-block;
+        position: absolute;
+        height: 50px;
+        width: 50px;
     }
 
     .button .icon {
-        padding: 10px 0 0 10px;
+        padding: 0px 0 0 0px;
     }
 
     .button.active .icon {
@@ -315,20 +327,16 @@
 
     /* Button states */
 
-    .music-on .icon-music-off,
-    .music-off .icon-music-on,
-    .sound-on .icon-sound-off,
-    .sound-off .icon-sound-on {
+    .weight-on .icon-weight-off,
+    .weight-off .icon-weight-on {
         display: none;
     }
 
-    .icon.icon-music-off,
-    .icon.icon-sound-off {
+    .icon.icon-weight-off {
         fill: #80D8FF;
     }
 
-    .button.active .icon.icon-music-off,
-    .button.active .icon.icon-sound-off {
+    .button.active .icon.icon-weight-off {
         fill: #40C4FF;
     }
 
@@ -339,40 +347,6 @@
     .no-restart .restart-container,
     .no-restart .label-restart {
         display: none;
-    }
-
-    /* Labels */
-
-    .label {
-        color: #F4FF81;
-        left: 360px;
-        position: absolute;
-    }
-
-    .label-music {
-        top: 55px;
-    }
-
-    .label-sound {
-        top: 125px;
-    }
-
-    .label-restart {
-        top: 195px;
-    }
-
-    /* Label states */
-
-    .music-on .label-music-off,
-    .music-off .label-music-on,
-    .sound-on .label-sound-off,
-    .sound-off .label-sound-on {
-        display: none;
-    }
-
-    .label-music-off,
-    .label-sound-off {
-        color: #80D8FF;
     }
 
     /* Switch */
@@ -494,6 +468,7 @@
     .digital-watch {
         height: 50%;
         right: 6px;
+        top: 10px;
         width: 100%;
         margin: 10px;
         position: absolute;
@@ -629,7 +604,7 @@
                 </div>
             </div>
         </div>
-        <div class="card" id="display">
+        <div class="card weight-off no-restart" id="display">
             <div class="digital-watch">
                 <svg width="0" height="0" viewBox="0 0 0 0">
                     <defs>
@@ -682,11 +657,34 @@
                     </svg>
                 </div>
             </div>
+            <div class="buttons-container">
+                <div class="button-backdrop">
+                    <div class="button button-weight"><svg class="icon icon-weight-on" viewBox="0 0 550 550">
+                            <path class="path1"
+                                d="M250,12.1c31,0,59.9,12.7,80.4,33.1c20.4,20.5,33.1,48.7,33.1,79.7c0,21.9-6.3,41.6-16.9,59.2c43,30.3,70.5,79.7,70.5,136.1c0,92.4-74.7,167.8-167.1,167.8c-92.4,0-167.1-75.4-167.1-167.8c0-56.4,27.5-105.8,70.5-136.1c-10.6-17.6-16.2-37.4-16.2-59.2c0-31,12.7-59.2,33.1-79.7C190.8,24.7,219,12.1,250,12.1L250,12.1z M315.6,281.4c-4.2-2.1-10.6-2.8-19.7-2.8c-9.2,0-16.2,1.4-21.8,4.2c-7.1,3.5-12.7,8.5-16.2,14.8c-3.5,6.4-5.6,14.1-5.6,22.6c0,8.5,2.1,16.2,5.6,22.6c2.8,6.3,7.7,11.3,13.4,14.8c6.3,2.8,14.1,4.9,23.9,4.9c7.8,0,14.1-1.4,19.8-2.8c5.6-2.1,12-5.6,19.7-10.6v-34.5h-38.8v16.9h16.9v7.7c-3.5,2.1-6.3,3.5-8.5,4.2c-2.8,0.7-5.6,0.7-8.5,0.7c-5.6,0-9.9-1.4-13.4-4.9c-3.5-4.2-4.9-10.6-4.9-19c0-8.5,1.4-14.1,4.9-18.3c2.8-3.5,7.7-5.6,12.7-5.6c4.3,0,7.1,1.4,9.2,2.8c2.8,1.4,4.2,3.5,4.9,7.1l24-4.2c-1.4-5.6-3.5-9.9-6.3-13.4C324.1,285.6,320.5,282.8,315.6,281.4L315.6,281.4z M251.4,361l-31-50.8L250,280h-33.2l-26.1,30.3V280h-25.4V361h25.4v-19.7l12.7-13.4l16.9,33.1H251.4z M250,153c25.4,0,49.3,5.6,70.5,15.5c7.8-12.7,12.7-27.5,12.7-43.7c0-22.6-9.1-43.7-24.7-58.5c-14.8-14.8-35.2-24.7-58.5-24.7c-22.6,0-43.7,9.9-58.5,24.7c-15.5,14.8-24.7,35.9-24.7,58.5c0,16.2,4.9,31,12.7,43.7C200.7,158.7,224.6,153,250,153L250,153z">
+                            </path>
+                        </svg><svg class="icon icon-weight-off" viewBox="0 0 550 550">
+                            <path class="path1"
+                                d="M144.4,190.9l89.1,89.1H250l-8.2,8.4l13.8,13.8c0.6-1.6,1.4-3.1,2.1-4.5c3.5-6.3,9.2-11.3,16.2-14.8c5.6-2.8,12.7-4.2,21.8-4.2c9.2,0,15.5,0.7,19.7,2.8c4.9,1.4,8.5,4.2,11.3,7c2.8,3.5,4.9,7.8,6.3,13.4l-24,4.2c-0.7-3.5-2.1-5.6-4.9-7.1c-2.1-1.4-4.9-2.8-9.2-2.8c-4.9,0-9.9,2.1-12.7,5.6c-3.5,4.2-4.9,9.9-4.9,18.3c0,1.4,0.1,2.7,0.1,4l20,20c2.2,0,4.4-0.1,6.7-0.7c2.1-0.7,4.9-2.1,8.5-4.2v-7.7h-16.9v-16.9h38.8V349c-7.7,4.9-14.1,8.5-19.7,10.6c-0.5,0.1-0.9,0.2-1.4,0.3l66.1,66.1c23.5-28.9,37.5-65.8,37.5-105.9c0-56.4-27.5-105.8-70.5-136.1c10.6-17.6,16.9-37.4,16.9-59.2c0-31-12.7-59.2-33.1-79.7C309.9,24.7,281,12.1,250,12.1c-31,0-59.2,12.7-79.7,33.1c-20.4,20.5-33.1,48.7-33.1,79.7c0,21.9,5.6,41.6,16.2,59.2C150.3,186.3,147.3,188.5,144.4,190.9z M191.5,66.3c14.8-14.8,35.9-24.7,58.5-24.7c23.3,0,43.7,9.9,58.5,24.7c15.5,14.8,24.7,35.9,24.7,58.5c0,16.2-4.9,31-12.7,43.7c-21.1-9.9-45.1-15.5-70.5-15.5c-25.4,0-49.4,5.6-70.5,15.5c-7.8-12.7-12.7-27.5-12.7-43.7C166.8,102.3,176,81.1,191.5,66.3z" />
+                            <path class="path1"
+                                d="M84.4,207.6L237.8,361h-17.4l-16.9-33.1l-12.7,13.4V361h-25.4v-72.4l-57.1-57.1c-16.1,25.6-25.4,55.9-25.4,88.6c0,92.4,74.7,167.8,167.1,167.8c32.7,0,63.2-9.5,88.9-25.8l20.9,20.9l21.3-21.3L105.7,186.3L84.4,207.6z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <!-- partial -->
     <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
     <script>
+
+        /*VARIABLES GLOBALES*/
+
+        var intervalId;
+        var weight = false;
+        var $controller = $('#display')
+
+        /*VARIABLES WEBSOCKET*/
 
         var gateway = `ws://${window.location.hostname}/ws`;
         var websocket;
@@ -698,6 +696,9 @@
             websocket.onclose = onClose;
             websocket.onmessage = onMessage; // <-- add this line
         }
+
+        /*EVENTOS WEBSOCKET*/
+
         function onOpen(event) {
             console.log('Connection opened');
         }
@@ -736,9 +737,12 @@
         function onLoad(event) {
             initWebSocket();
             initDpad();
+            initButton();
             initswitch();
             console.log('MANUAL');
         }
+
+        /*EVENTOS BOTONES*/
 
         function initDpad() {
             var $dpad_buttons = $('.dpad:not(.dpad-center)')
@@ -753,51 +757,74 @@
                     const index = $dpad_buttons.index(activeButton);
                     const isActive = activeButton.length === 1 ? 1 : 0; // 1 si está activo, 0 si no lo está
                     const message = index + '|' + isActive;
-                    console.log(message);
-                    websocket.send(message);
-                })
-                .on('mouseup touchend ', function (event) {
-                    isButtonPressed = false;
-                    const activeButton = $dpad_buttons.filter('.active');
-                    const index = $dpad_buttons.index(activeButton);
-                    const isActive = activeButton.length === 1 ? 0 : 0; // 1 si está activo, 0 si no lo está
-                    $dpad_buttons.removeClass('active')
-                    const message = index + '|' + isActive;
-                    console.log(message);
-                    websocket.send(message);
-                })
-                .on('mouseleave', function (event) {
-                    if (isButtonPressed) {
-                        isButtonPressed = false;
-                        const activeButton = $dpad_buttons.filter('.active');
-                        const index = $dpad_buttons.index(activeButton);
-                        const isActive = activeButton.length === 1 ? 0 : 0; // 1 si está activo, 0 si no lo está
-                        $dpad_buttons.removeClass('active')
-                        const message = index + '|' + isActive;
+                    if (index != -1) {
                         console.log(message);
                         websocket.send(message);
                     }
-                });
+                })
+                $('body')
+                .on('mouseup touchend ', function (event) {
+                    
+                        const activeButton = $dpad_buttons.filter('.active');
+                        const index = $dpad_buttons.index(activeButton);
+                        const isActive = activeButton.length === 1 ? 0 : 0; // 1 si está activo, 0 si no lo está
+                        const message = index + '|' + isActive;
+                        if (index != -1) {
+                            $dpad_buttons.removeClass('active')
+                            isButtonPressed = false;
+                            console.log(message);
+                            websocket.send(message);
+                        
+                    }
+                })
+        }
+
+        function initButton() {
+            var $other_buttons = $('.buttons-container .button')
+
+            $other_buttons
+                .on('mousedown touchstart', function (event) {
+
+                    $(this).addClass('active')
+                })
+
+            $('body')
+                .on('mouseup touchend', function (event) {
+                    $other_buttons.removeClass('active')
+                })
+
+
+            $('.button-weight').click(function (event) {
+                if (weight = !weight) {
+                    $controller.removeClass('weight-off').addClass('weight-on')
+                    intervalId = setInterval(function () {
+                        console.log('WEIGTH-UPDATE');
+                        websocket.send('WEIGTH-UPDATE');
+                    }, 2000);
+                }
+                else {
+                    clearInterval(intervalId);
+                    $controller.removeClass('weight-on').addClass('weight-off');
+                    console.log('WEIGTH-OFF')
+                }
+            })
         }
 
         function initswitch() {
-            var intervalId;
 
             $('.toggle-switch input').change(function () {
                 const isManual = $('#toggle-a').is(':checked');
                 const isAuto = $('#toggle-b').is(':checked');
                 if (isAuto) {
                     clearInterval(intervalId);
+                    weight = false;
+                    $controller.removeClass('weight-on').addClass('weight-off');
                     console.log('AUTO');
                     websocket.send('AUTO');
                 }
                 if (isManual) {
                     console.log('MANUAL');
                     websocket.send('MANUAL');
-                    intervalId = setInterval(function () {
-                        console.log('MANUAL-UPDATE');
-                        websocket.send('MANUAL-UPDATE');
-                    }, 2000);
                 }
             });
         }
