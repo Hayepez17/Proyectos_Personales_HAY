@@ -8,8 +8,9 @@
 #define OUT4 GPIO_NUM_16
 #define LED2 GPIO_NUM_2
 
-#define IN1 GPIO_NUM_32
-#define IN2 GPIO_NUM_33
+#define IN1 GPIO_NUM_27
+#define IN2 GPIO_NUM_14
+
 esp_err_t init_gpio(void);
 
 
@@ -17,6 +18,5 @@ typedef struct
 {
     bool Sensor1;
     bool Sensor2;
-    bool F_LEFT;
-    bool F_RIGHT;
+
 } Data_IN;

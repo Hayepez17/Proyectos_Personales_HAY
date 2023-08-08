@@ -31,7 +31,7 @@ char BUFF[sizeBUFF];
 
 //**********DIRECCIÓN MAC DEL RESPONDER************************
 
-static uint8_t peer_mac[ESP_NOW_ETH_ALEN] = {0x94, 0xe6, 0x86, 0x01, 0xee, 0xe8};
+static uint8_t peer_mac[ESP_NOW_ETH_ALEN] = {0xc8, 0xf0, 0x9e, 0xf1, 0x6b, 0x10};
 
 static char *TAG = "esp_now_init";
 

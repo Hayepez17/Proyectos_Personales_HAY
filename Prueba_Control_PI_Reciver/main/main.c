@@ -24,9 +24,9 @@
 #define ESP_CHANNEL 1
 #define VelSpinR 165
 #define VelSpinL 200
-#define Dutyarranque 220
-#define max_time_us 100000
-#define offset -13
+#define Dutyarranque 250
+#define max_time_us 600000
+#define offset -5
 #define timeout_expired(start, len) ((esp_timer_get_time() - (start)) >= (len))
 
 // Queue parameters
@@ -117,6 +117,7 @@ void recv_cb(const esp_now_recv_info_t *esp_now_info, const uint8_t *data, int d
 
     if (CtrlData.ON)
     {
+       // reposo = 1;
         vTaskResume(xHandle);
     }
 
@@ -176,6 +177,9 @@ void TareaEntradaDatos(void *Parametro)
     Data_IN DatosTX;
     int64_t time_start;
 
+    bool flag1 = 0;
+    bool flag2 = 0;
+
     while (1)
     {
 
@@ -192,54 +196,53 @@ void TareaEntradaDatos(void *Parametro)
                 else
                     xQueueSend(xQueue, &DatosTX, portMAX_DELAY);
         */
-        if (gpio_get_level(IN1) == 1 && gpio_get_level(IN2) == 1 && CtrlData.KP != 0)
+        if ((DatosTX.Sensor1 = gpio_get_level(IN1)))
+            flag1 = 1;
+        else
+            flag1 = 0;
+        if ((DatosTX.Sensor2 = gpio_get_level(IN2)))
+            flag2 = 1;
+        else
+            flag2 = 0;
+
+        if (DatosTX.Sensor1 == 1 && DatosTX.Sensor2 == 1 && CtrlData.KP != 0)
         {
+            flag1 = 0;
+            flag2 = 0;
             SetDirecction(STOP);
-            reposo = 1;
-            vTaskDelay(20 / portTICK_PERIOD_MS);
+            vTaskDelay(200 / portTICK_PERIOD_MS);
         }
         else
         {
+            /* time_start = esp_timer_get_time();
+             while ((DatosTX.Sensor1 = gpio_get_level(IN1)) == 1 && flag1 == 1 && (DatosTX.Sensor2 = gpio_get_level(IN2)) != 1)
+             {
+                 if (timeout_expired(time_start, max_time_us))
+                 {
+                     reposo=1;
+                     arranque(Dutyarranque, Dutyarranque);
+                     flag1 = 0;
+                     ESP_LOGE(TAG, "se detuvo 1");
+                 }
+                 xQueueSend(xQueue, &DatosTX, portMAX_DELAY);
 
-            DatosTX.Sensor1 = gpio_get_level(IN1);
-            DatosTX.Sensor2 = gpio_get_level(IN2);
-            DatosTX.F_LEFT = 0;
-            DatosTX.F_LEFT = 0;
+             }
+             time_start = esp_timer_get_time();
+             while ((DatosTX.Sensor2 = gpio_get_level(IN2)) == 1 && flag2 == 1 && (DatosTX.Sensor1 = gpio_get_level(IN1)) != 1)
+             {
+                 if (timeout_expired(time_start, max_time_us))
+                 {
+                     reposo=1;
+                     arranque(Dutyarranque, Dutyarranque);
+                     flag2 = 0;
+                     ESP_LOGE(TAG, "se detuvo 2");
+                 }
+                 xQueueSend(xQueue, &DatosTX, portMAX_DELAY);
+
+             }
+            */
             xQueueSend(xQueue, &DatosTX, portMAX_DELAY);
-            /*
-                        time_start = esp_timer_get_time();
-                        while (gpio_get_level(IN1) && CtrlData.KP != 0 && DatosTX.F_LEFT == 0)
-                        {
-                            if (timeout_expired(time_start, max_time_us))
-                            {
-                                SetDirecction(STOP);
-                                vTaskDelay(1000 / portTICK_PERIOD_MS);
-                                DatosTX.F_LEFT = 1;
-                                break;
-                            }
-
-                            DatosTX.Sensor1 = gpio_get_level(IN1);
-                            DatosTX.Sensor2 = gpio_get_level(IN2);
-                            xQueueSend(xQueue, &DatosTX, portMAX_DELAY);
-                        }
-
-                        time_start = esp_timer_get_time();
-                        while (gpio_get_level(IN2) && CtrlData.KP != 0 && DatosTX.F_RIGHT == 0)
-                        {
-                            if (timeout_expired(time_start, max_time_us))
-                            {
-                                SetDirecction(STOP);
-                                vTaskDelay(1000 / portTICK_PERIOD_MS);
-                                DatosTX.F_RIGHT = 1;
-                                break;
-                            }
-
-                            DatosTX.Sensor1 = gpio_get_level(IN1);
-                            DatosTX.Sensor2 = gpio_get_level(IN2);
-                            xQueueSend(xQueue, &DatosTX, portMAX_DELAY);
-                        }
-
-                        */
+            vTaskDelay(10 / portTICK_PERIOD_MS);
         }
     }
 }
@@ -259,30 +262,13 @@ void ControlM(void *pvParameters)
 
             if (CtrlData.ON)
             {
-                /*if (DatosRX.F_LEFT)
-                {
-                    set_pwm(0, 160);
-                    SetDirecction(FORWARD);
-                    vTaskDelay(500 / portTICK_PERIOD_MS);
-                    SetDirecction(STOP);
-                    DatosRX.F_LEFT = 0;
-                }
-
-                if (DatosRX.F_RIGHT)
-                {
-                    set_pwm(192, 0);
-                    SetDirecction(FORWARD);
-                    vTaskDelay(500 / portTICK_PERIOD_MS);
-                    SetDirecction(STOP);
-                    DatosRX.F_RIGHT = 0;
-                }
-*/
+            
                 PID_Coefficients(p_pid_data, 0.0, CtrlData.KP, CtrlData.KI, 0.0);
 
                 error = 10.0 * DatosRX.Sensor2 - 10.0 * DatosRX.Sensor1;
                 correccion = PID_Update(p_pid_data, error);
 
-                pot = -1.0 * CtrlData.KV * fabs(error*CtrlData.KP);
+                pot = -1.0 * CtrlData.KV * fabs(error * CtrlData.KP);
                 velM = CtrlData.VelMin + (CtrlData.VelMax - CtrlData.VelMin) * pow(EULER, pot);
 
                 dutym1 = velM - (correccion + offset);
@@ -293,62 +279,15 @@ void ControlM(void *pvParameters)
                 if (dutym2 < 50)
                     dutym2 = 0;
 
-                if (dutym1 != 0 && dutym2 != 0 && reposo == 1)
-                {
-                    arranque(dutym1, dutym2);
-                }
-
-                else
-                    set_pwm(dutym1, dutym2);
+                arranque(dutym1, dutym2);
 
                 SetDirecction(FORWARD);
-                /*if (DatosRX.Sensor2 == 1 && DatosRX.Sensor1 == 1 && CtrlData.KP != 0)
-                {
-                    gpio_set_level(OUT1, 0);
-                    gpio_set_level(OUT2, 0);
-                    gpio_set_level(OUT3, 0);
-                    gpio_set_level(OUT4, 0);
-                }
-
-                else
-                {
-                    if (CtrlData.Sentido1 == 0)
-                    {
-
-                        gpio_set_level(OUT1, 0);
-                        gpio_set_level(OUT2, 1);
-                    }
-                    else
-                    {
-                        gpio_set_level(OUT1, 1);
-                        gpio_set_level(OUT2, 0);
-                    }
-
-                    if (CtrlData.Sentido2 == 0)
-                    {
-
-                        gpio_set_level(OUT3, 0);
-                        gpio_set_level(OUT4, 1);
-                    }
-                    else
-                    {
-                        gpio_set_level(OUT3, 1);
-                        gpio_set_level(OUT4, 0);
-                    }
-                }
-                */
             }
             else
             {
                 SetDirecction(STOP);
-                set_pwm(0, 0);
                 vTaskSuspend(xHandle);
-                reposo = 1;
             }
-
-            // ESP_LOGI(TAG, "%u|%u", dutym1, dutym2);
-
-            // vTaskDelay(100 / portTICK_PERIOD_MS);
         }
     }
 }
@@ -364,7 +303,8 @@ void SetDirecction(int x)
         gpio_set_level(OUT2, 0);
         gpio_set_level(OUT3, 0);
         gpio_set_level(OUT4, 0);
-
+        set_pwm(0, 0);
+        reposo = 1;
         break;
 
     case FORWARD:
@@ -402,20 +342,17 @@ void SetDirecction(int x)
 
 void arranque(uint16_t DutyNom1, uint16_t DutyNom2)
 {
-    if (DutyNom1 == 0)
-        set_pwm(0, Dutyarranque);
-    else
+    if (reposo)
     {
-        if (DutyNom2 == 0)
-            set_pwm(Dutyarranque, 0);
-        else
-        {
-            set_pwm(Dutyarranque, Dutyarranque);
-            vTaskDelay(500 / portTICK_PERIOD_US);
-            set_pwm(DutyNom1, DutyNom2); /* code */
-            reposo = 0;
-        }
+
+        set_pwm(Dutyarranque, Dutyarranque);
+        SetDirecction(FORWARD);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
+        set_pwm(DutyNom1, DutyNom2); /* code */
+        reposo = 0;
     }
+    else
+        set_pwm(DutyNom1, DutyNom2);
 }
 
 void app_main(void)
