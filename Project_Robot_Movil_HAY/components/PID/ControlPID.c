@@ -52,6 +52,8 @@ void PID_Coefficients(ptrPIDdata pPd, float setpoint, float kP, float kI, float 
     pPd->kP = kP;
     pPd->kI = kI;
     pPd->kD = kD;
+
+    //ESP_LOGI(tag,"COEFICIENTES PID ESTABLECIDOS");
 }
 
 /*

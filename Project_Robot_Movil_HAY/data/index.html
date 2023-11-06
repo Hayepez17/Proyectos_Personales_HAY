@@ -9,18 +9,18 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css?family=Roboto');
-    
+
         * {
             margin: 0;
             padding: 0;
             font-family: 'Roboto', sans-serif;
         }
-    
+
         html {
             width: 100%;
         }
-    
-    
+
+
         body {
             width: 100%;
             display: flex;
@@ -30,7 +30,7 @@
             align-items: center;
             min-height: 100vh;
         }
-    
+
         .container {
             position: relative;
             width: 900px;
@@ -39,7 +39,7 @@
             align-items: center;
             justify-content: center;
         }
-    
+
         .container .card {
             position: relative;
             width: 470px;
@@ -54,7 +54,7 @@
             margin: 25px;
             text-align: center;
         }
-    
+
         .controller {
             height: 280px;
             position: absolute;
@@ -62,16 +62,16 @@
             transform: scale(1);
             transform-origin: 0 0;
         }
-    
+
         .panel {
             background: #2b3334;
             height: 280px;
             position: relative;
             width: 490px;
         }
-    
+
         /* D-PAD */
-    
+
         .dpad-container {
             bottom: 40px;
             height: 200px;
@@ -79,7 +79,7 @@
             position: absolute;
             width: 200px;
         }
-    
+
         .dpad-backdrop {
             background: #CFD8DC;
             border-radius: 10px;
@@ -88,7 +88,7 @@
             position: relative;
             width: 80px;
         }
-    
+
         .dpad-backdrop::after {
             background: #CFD8DC;
             border-radius: 10px;
@@ -100,7 +100,7 @@
             top: 60px;
             width: 200px;
         }
-    
+
         .dpad {
             background: #202020;
             box-shadow: 0 1px 10px #37474F;
@@ -108,31 +108,31 @@
             position: absolute;
             width: 60px;
         }
-    
+
         .dpad-up {
             border-radius: 5px 5px 0 0;
             bottom: 130px;
             left: 70px;
         }
-    
+
         .dpad-right {
             border-radius: 0 5px 5px 0;
             bottom: 70px;
             left: 130px;
         }
-    
+
         .dpad-down {
             border-radius: 0 0 5px 5px;
             bottom: 10px;
             left: 70px;
         }
-    
+
         .dpad-left {
             border-radius: 5px 0 0 5px;
             bottom: 70px;
             left: 10px;
         }
-    
+
         .dpad-center {
             border: #202020 1px solid;
             border-radius: 1px;
@@ -140,20 +140,20 @@
             box-shadow: none;
             left: 69px;
         }
-    
+
         @media (max-width: 991px) {
             .container {
                 width: 100%;
                 flex-direction: column;
             }
-    
+
             .container .card {
                 margin: 25px;
             }
         }
-    
+
         /* D-PAD arrows */
-    
+
         .arrow-up {
             border-bottom: 24px solid #455A64;
             border-left: 24px solid transparent;
@@ -162,14 +162,14 @@
             margin: 20px auto 0;
             width: 0;
         }
-    
+
         .arrow-up2 {
             background: #455A64;
             height: 12px;
             margin: -2px auto 0;
             width: 24px;
         }
-    
+
         .arrow-right {
             border-bottom: 24px solid transparent;
             border-left: 24px solid #455A64;
@@ -180,14 +180,14 @@
             top: 6px;
             width: 0;
         }
-    
+
         .arrow-right2 {
             background: #455A64;
             height: 24px;
             margin: 18px 0 0 6px;
             width: 12px;
         }
-    
+
         .arrow-down {
             border-left: 24px solid transparent;
             border-right: 24px solid transparent;
@@ -196,14 +196,14 @@
             margin: 0 auto;
             width: 0;
         }
-    
+
         .arrow-down2 {
             background: #455A64;
             height: 12px;
             margin: 6px auto -2px;
             width: 24px;
         }
-    
+
         .arrow-left {
             border-bottom: 24px solid transparent;
             border-right: 24px solid #455A64;
@@ -212,7 +212,7 @@
             margin: 6px 0 0 20px;
             width: 0;
         }
-    
+
         .arrow-left2 {
             background: #455A64;
             height: 24px;
@@ -222,48 +222,48 @@
             top: 18px;
             width: 12px;
         }
-    
+
         /* Active arrows */
-    
+
         .dpad.active {
             background-color: #303030;
         }
-    
+
         .dpad.active .arrow-up {
             border-bottom-color: #FFEB3B;
         }
-    
+
         .dpad.active .arrow-up2 {
             background-color: #FFEB3B;
         }
-    
+
         .dpad.active .arrow-right {
             border-left-color: #FFEB3B;
         }
-    
+
         .dpad.active .arrow-right2 {
             background-color: #FFEB3B;
         }
-    
+
         .dpad.active .arrow-down {
             border-top-color: #FFEB3B;
         }
-    
+
         .dpad.active .arrow-down2 {
             background-color: #FFEB3B;
         }
-    
+
         .dpad.active .arrow-left {
             border-right-color: #FFEB3B;
         }
-    
+
         .dpad.active .arrow-left2 {
             background-color: #FFEB3B;
         }
-    
+
         /* Buttons */
-    
-    
+
+
         .buttons-container {
             /* bottom: 40px; */
             top: 177px;
@@ -273,7 +273,7 @@
             margin: 5px;
             width: 125px;
         }
-    
+
         .button-backdrop {
             background: #CFD8DC;
             border-radius: 5px;
@@ -281,11 +281,11 @@
             position: relative;
             width: 125px;
         }
-    
+
         .button-backdrop+.button-backdrop {
             margin-top: 10px;
         }
-    
+
         .button {
             background: #202020;
             border-radius: 50px;
@@ -296,11 +296,11 @@
             top: 5px;
             width: 115px;
         }
-    
+
         .button.active {
             background-color: #303030;
         }
-    
+
         .icon {
             right: 32px;
             display: inline-block;
@@ -309,48 +309,48 @@
             height: 50px;
             width: 50px;
         }
-    
+
         .path1 {
             display: inline-block;
             position: absolute;
             height: 50px;
             width: 50px;
         }
-    
+
         .button .icon {
             padding: 0px 0 0 0px;
         }
-    
+
         .button.active .icon {
             fill: #EEFF41;
         }
-    
+
         /* Button states */
-    
+
         .weight-on .icon-weight-off,
         .weight-off .icon-weight-on {
             display: none;
         }
-    
+
         .icon.icon-weight-off {
             fill: #80D8FF;
         }
-    
+
         .button.active .icon.icon-weight-off {
             fill: #40C4FF;
         }
-    
+
         .icon.icon-restart {}
-    
+
         .button.active .icon.icon-restart {}
-    
+
         .no-restart .restart-container,
         .no-restart .label-restart {
             display: none;
         }
-    
+
         /* Switch */
-    
+
         .toggle-switch-container {
             bottom: 90px;
             height: 110px;
@@ -358,16 +358,16 @@
             position: absolute;
             width: 110px;
         }
-    
+
         .toggle-switch {
             margin: 0;
         }
-    
+
         .toggle-switch {
             width: 10px;
             position: relative;
         }
-    
+
         .toggle-switch input {
             position: absolute;
             top: 0;
@@ -375,27 +375,27 @@
             opacity: 0;
             cursor: pointer;
         }
-    
+
         .toggle-switch input:checked {
             z-index: 1;
         }
-    
+
         .toggle-switch input:checked+label {
             opacity: 1;
             cursor: default;
         }
-    
+
         .toggle-switch input:not(:checked)+label:hover {
             opacity: 0.5;
         }
-    
+
         .toggle-switch label {
             color: #F4FF81;
             opacity: 0.33;
             cursor: pointer;
             transition: opacity 0.3s ease-in-out;
         }
-    
+
         .toggle-switch .toggle-outside {
             height: 100%;
             border-radius: 7px;
@@ -403,14 +403,14 @@
             overflow: hidden;
             transition: opacity 0.3s ease-in-out;
         }
-    
+
         .toggle-switch .toggle-inside {
             border-radius: 5px;
             background: #424242;
             position: absolute;
             transition: all 0.3s ease-in-out;
         }
-    
+
         .switch-vertical {
             background-color: #00F;
             top: 23px;
@@ -419,14 +419,14 @@
             height: 66px;
             /* margin-left: 25px; */
         }
-    
+
         .switch-vertical input {
             height: 68px;
             width: 25px;
             right: 0;
             margin: 0;
         }
-    
+
         .switch-vertical label {
             font-size: 15px;
             line-height: 30px;
@@ -438,7 +438,7 @@
             padding-left: 15px;
             /* top: 10px; */
         }
-    
+
         .switch-vertical .toggle-outside {
             background: rgba(255, 255, 255, 0.5);
             position: absolute;
@@ -447,24 +447,24 @@
             right: 0;
             top: 0;
         }
-    
+
         .switch-vertical .toggle-inside {
             height: 17px;
             left: 3px;
             top: 3px;
             width: 17px;
         }
-    
+
         .switch-vertical input:checked~.toggle-outside .toggle-inside {
             top: 3px;
         }
-    
+
         .switch-vertical input~input:checked~.toggle-outside .toggle-inside {
             top: 45px;
         }
-    
+
         /*  Display  */
-    
+
         .digital-watch {
             height: 50%;
             right: 6px;
@@ -473,7 +473,7 @@
             margin: 10px;
             position: absolute;
         }
-    
+
         .digital-watch .hour,
         .digital-watch .minute,
         .digital-watch .second {
@@ -482,7 +482,7 @@
             margin: -8px;
             font-size: 0;
         }
-    
+
         .digital-watch .hour::after {
             content: '';
             position: absolute;
@@ -491,58 +491,58 @@
             height: 6px;
             background-color: #EEFF41;
         }
-    
+
         .digital-watch .hour::after {
             top: 113px;
         }
-    
+
         .digital-watch svg {
             display: inline-block;
             margin: 20px;
         }
-    
+
         .digital-watch svg .segment {
             fill: rgba(0, 0, 0, .15);
             transition: .3s ease-in-out;
         }
-    
+
         .digital-watch svg.num-1 .b,
         .digital-watch svg.num-1 .c,
-    
+
         .digital-watch svg.num-2 .a,
         .digital-watch svg.num-2 .b,
         .digital-watch svg.num-2 .d,
         .digital-watch svg.num-2 .e,
         .digital-watch svg.num-2 .g,
-    
+
         .digital-watch svg.num-3 .a,
         .digital-watch svg.num-3 .b,
         .digital-watch svg.num-3 .c,
         .digital-watch svg.num-3 .d,
         .digital-watch svg.num-3 .g,
-    
+
         .digital-watch svg.num-4 .b,
         .digital-watch svg.num-4 .c,
         .digital-watch svg.num-4 .f,
         .digital-watch svg.num-4 .g,
-    
+
         .digital-watch svg.num-5 .a,
         .digital-watch svg.num-5 .c,
         .digital-watch svg.num-5 .d,
         .digital-watch svg.num-5 .f,
         .digital-watch svg.num-5 .g,
-    
+
         .digital-watch svg.num-6 .a,
         .digital-watch svg.num-6 .c,
         .digital-watch svg.num-6 .d,
         .digital-watch svg.num-6 .e,
         .digital-watch svg.num-6 .f,
         .digital-watch svg.num-6 .g,
-    
+
         .digital-watch svg.num-7 .a,
         .digital-watch svg.num-7 .b,
         .digital-watch svg.num-7 .c,
-    
+
         .digital-watch svg.num-8 .a,
         .digital-watch svg.num-8 .b,
         .digital-watch svg.num-8 .c,
@@ -550,14 +550,14 @@
         .digital-watch svg.num-8 .e,
         .digital-watch svg.num-8 .f,
         .digital-watch svg.num-8 .g,
-    
+
         .digital-watch svg.num-9 .a,
         .digital-watch svg.num-9 .b,
         .digital-watch svg.num-9 .c,
         .digital-watch svg.num-9 .d,
         .digital-watch svg.num-9 .f,
         .digital-watch svg.num-9 .g,
-    
+
         .digital-watch svg.num-0 .a,
         .digital-watch svg.num-0 .b,
         .digital-watch svg.num-0 .c,
@@ -578,19 +578,19 @@
         <div class="card" id="control">
             <div class="dpad-container" id="dpad">
                 <div class="dpad-backdrop"></div>
-                <div class="dpad dpad-up">
+                <div class="dpad dpad-up" id="0">
                     <div class="arrow-up"></div>
                     <div class="arrow-up2"></div>
                 </div>
-                <div class="dpad dpad-right">
+                <div class="dpad dpad-right" id="1">
                     <div class="arrow-right2"></div>
                     <div class="arrow-right"></div>
                 </div>
-                <div class="dpad dpad-down">
+                <div class="dpad dpad-down" id="2">
                     <div class="arrow-down2"></div>
                     <div class="arrow-down"></div>
                 </div>
-                <div class="dpad dpad-left">
+                <div class="dpad dpad-left" id="3">
                     <div class="arrow-left"></div>
                     <div class="arrow-left2"></div>
                 </div>
@@ -686,8 +686,13 @@
 
         var intervalId;
         var weight = false;
+        var DpadPressed = false;
         var $controller = $('#display')
-
+        var $toggleA = $('#toggle-a')
+        var $toggleB = $('#toggle-b')
+        var $dpad_buttons = $('.dpad:not(.dpad-center)')
+        var $other_buttons = $('.buttons-container .button')
+        let mode;
         /*VARIABLES WEBSOCKET*/
 
         var gateway = `ws://${window.location.hostname}/ws`;
@@ -714,28 +719,87 @@
 
             const message = JSON.parse(event.data);
             const value1 = message.value1;
-            const mappedValue = (value1 / 511) * 99.99;
-            const integerPart = Math.trunc(mappedValue); //trunca la parte entera de el punto flotante
-            const integerPartString = integerPart.toString().padStart(2, 'NaN'); //agrega NaN al inicio de la parte entera si es menor a 2 digitos
-            const digInteger = integerPartString.split('').map(Number); //separo y convierto la parte entera en cadena de dos elementos
+            const StateSwitch = message.StateSwitch;
+            const StateButton = message.StateButton;
+            const DirectionButton = message.DirectionButton;
+            StateWeigth = message.StateWeigth;
+
+            if (StateWeigth) {
+
+                if (!weight) {
+                    weight = true;
+                    $controller.removeClass('weight-off').addClass('weight-on');
+                }
+
+                const mappedValue = (value1 / 511) * 99.99;
+                const integerPart = Math.trunc(mappedValue); //trunca la parte entera de el punto flotante
+                const integerPartString = integerPart.toString().padStart(2, 'NaN'); //agrega NaN al inicio de la parte entera si es menor a 2 digitos
+                const digInteger = integerPartString.split('').map(Number); //separo y convierto la parte entera en cadena de dos elementos
 
 
-            const decimalPart = mappedValue.toFixed(2);
-            const digDecimal = decimalPart.split('.')[1].split('');
-            const digits = digInteger.concat(digDecimal);
+                const decimalPart = mappedValue.toFixed(2);
+                const digDecimal = decimalPart.split('.')[1].split('');
+                const digits = digInteger.concat(digDecimal);
 
-            // Actualizar los elementos de la parte entera
-            for (let i = 1; i <= 2; i++) {
-                const element = document.getElementById(`hour-${i}`);
-                const value = digits[i - 1];
-                element.setAttribute('class', `num-${value}`);
+                // Actualizar los elementos de la parte entera
+                for (let i = 1; i <= 2; i++) {
+                    const element = document.getElementById(`hour-${i}`);
+                    const value = digits[i - 1];
+                    element.setAttribute('class', `num-${value}`);
+                }
+
+                // Actualizar los elementos de la parte flotante
+                for (let i = 1; i <= 2; i++) {
+                    const element = document.getElementById(`minute-${i}`);
+                    const value = digits[i + 1];
+                    element.setAttribute('class', `num-${value}`);
+                }
+            }
+            else {
+                if (weight) {
+                    weight = 0;
+                    clearInterval(intervalId);
+                    $controller.removeClass('weight-on').addClass('weight-off');
+                }
             }
 
-            // Actualizar los elementos de la parte flotante
-            for (let i = 1; i <= 2; i++) {
-                const element = document.getElementById(`minute-${i}`);
-                const value = digits[i + 1];
-                element.setAttribute('class', `num-${value}`);
+            if (StateSwitch) {
+                if (!mode) {
+                    mode = 1;
+                    clearInterval(intervalId);
+                    weight = false;
+                    $controller.removeClass('weight-on').addClass('weight-off');
+                    $('#toggle-b').prop('checked', true);
+                    $('#toggle-a').prop('checked', false);
+                }
+                    if (StateButton) {
+                        const selectedDpad = $(`#${DirectionButton}`);
+                        selectedDpad.addClass('active');
+                        DpadPressed=true;
+                    }
+                
+                else{
+                    $dpad_buttons.removeClass('active');
+                    DpadPressed=false;
+                }
+            }
+            else {
+                if (mode) {
+                    mode = 0;
+                    DpadPressed=false;
+                    $dpad_buttons.removeClass('active');
+                    $('#toggle-a').prop('checked', true);
+                    $('#toggle-b').prop('checked', false);
+                }
+
+                if (StateButton) {
+                    const selectedDpad = $(`#${DirectionButton}`);
+                    //const selectedDpad = $dpad_buttons.index(DirectionButton);
+                    selectedDpad.addClass('active');
+                }
+                else
+                    $dpad_buttons.removeClass('active');
+
             }
         }
         function onLoad(event) {
@@ -743,53 +807,89 @@
             initDpad();
             initButton();
             initswitch();
+            mode = 0;
             console.log('MANUAL');
         }
 
         /*EVENTOS BOTONES*/
 
         function initDpad() {
-            var $dpad_buttons = $('.dpad:not(.dpad-center)')
+
             let isButtonPressed = false;
 
             $dpad_buttons
                 .on('mousedown touchstart', function (event) {
-                    // $dpad_buttons.removeClass('active')
-                    isButtonPressed = true;
-                    $(this).addClass('active')
-                    const activeButton = $dpad_buttons.filter('.active');
-                    const index = $dpad_buttons.index(activeButton);
-                    const isActive = activeButton.length === 1 ? 1 : 0; // 1 si está activo, 0 si no lo está
-                    const message = index + '|' + isActive;
-                    if (index != -1) {
-                        console.log(message);
-                        websocket.send(message);
+
+                    if (!mode) {
+                        // $dpad_buttons.removeClass('active')
+                        isButtonPressed = true;
+                        $(this).addClass('active');
+                        const activeButton = $dpad_buttons.filter('.active');
+                        const index = $dpad_buttons.index(activeButton);
+                        const isActive = activeButton.length === 1 ? 1 : 0; // 1 si está activo, 0 si no lo está
+                        const message = index + '|' + isActive;
+                        if (index != -1) {
+                            console.log(message);
+                            websocket.send(message);
+                        }
                     }
                 })
-                $('body')
+                .click(function (event) {
+                    const hasClass = $(this).hasClass("dpad-down");
+                    if (mode==true && hasClass==false) {
+
+                        if (DpadPressed = !DpadPressed) {
+                            $(this).addClass('active');
+                            const activeButton = $dpad_buttons.filter('.active');
+                            const index = $dpad_buttons.index(activeButton);
+                            const isActive = activeButton.length === 1 ? 1 : 0; // 1 si está activo, 0 si no lo está
+                            const message = index + '|' + isActive;
+                            if (index != -1) {
+                                console.log(message);
+                                websocket.send(message);
+                            }
+                        }
+                        else {
+                            const activeButton = $dpad_buttons.filter('.active');
+                            const index = $dpad_buttons.index(activeButton);
+                            const isActive = activeButton.length === 1 ? 0 : 0; // 1 si está activo, 0 si no lo está
+                            const message = index + '|' + isActive;
+                            if (index != -1) {
+                                $dpad_buttons.removeClass('active');
+                                console.log(message);
+                                websocket.send(message);
+                            }
+                        }
+                    }
+                })
+
+            $('body')
                 .on('mouseup touchend ', function (event) {
-                    
+                    if (!mode) {
                         const activeButton = $dpad_buttons.filter('.active');
                         const index = $dpad_buttons.index(activeButton);
                         const isActive = activeButton.length === 1 ? 0 : 0; // 1 si está activo, 0 si no lo está
                         const message = index + '|' + isActive;
                         if (index != -1) {
-                            $dpad_buttons.removeClass('active')
+                            $dpad_buttons.removeClass('active');
                             isButtonPressed = false;
                             console.log(message);
                             websocket.send(message);
-                        
+
+                        }
                     }
                 })
+
+
         }
 
         function initButton() {
-            var $other_buttons = $('.buttons-container .button')
 
             $other_buttons
                 .on('mousedown touchstart', function (event) {
-
-                    $(this).addClass('active')
+                    if (!mode) {
+                        $(this).addClass('active');
+                    }
                 })
 
             $('body')
@@ -799,17 +899,22 @@
 
 
             $('.button-weight').click(function (event) {
-                if (weight = !weight) {
-                    $controller.removeClass('weight-off').addClass('weight-on')
-                    intervalId = setInterval(function () {
-                        console.log('WEIGTH-UPDATE');
-                        websocket.send('WEIGTH-UPDATE');
-                    }, 2000);
-                }
-                else {
-                    clearInterval(intervalId);
-                    $controller.removeClass('weight-on').addClass('weight-off');
-                    console.log('WEIGTH-OFF')
+                if (!mode) {
+                    if (weight = !weight) {
+
+                        $controller.removeClass('weight-off').addClass('weight-on');
+                        intervalId = setInterval(function () {
+                            console.log('WEIGTH-UPDATE');
+                            websocket.send('WEIGTH-UPDATE');
+                        }, 2000);
+                    }
+                    else {
+
+                        clearInterval(intervalId);
+                        $controller.removeClass('weight-on').addClass('weight-off');
+                        console.log('WEIGTH-OFF');
+                        websocket.send('WEIGTH-OFF')
+                    }
                 }
             })
         }
@@ -820,6 +925,7 @@
                 const isManual = $('#toggle-a').is(':checked');
                 const isAuto = $('#toggle-b').is(':checked');
                 if (isAuto) {
+                    mode = 1;
                     clearInterval(intervalId);
                     weight = false;
                     $controller.removeClass('weight-on').addClass('weight-off');
@@ -827,6 +933,9 @@
                     websocket.send('AUTO');
                 }
                 if (isManual) {
+                    mode = 0;
+                    DpadPressed=false;
+                    $dpad_buttons.removeClass('active');
                     console.log('MANUAL');
                     websocket.send('MANUAL');
                 }
@@ -834,4 +943,5 @@
         }
     </script>
 </body>
+
 </html>

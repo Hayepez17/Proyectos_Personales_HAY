@@ -3,25 +3,54 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 #include <esp_http_server.h>
 #include "nvs_flash.h"
 #include "esp_spiffs.h"
-#include "freertos/queue.h"
-
+#include "init_gpio.h"
 #include "connect_wifi.h"
 #include "init_adc.h"
-#include "init_gpio.h"
-#include "init_pwm.h"
 #include "tareas.h"
-#include "ControlPID.h"
 #include "ultrasonic.h"
+#include "init_pwm.h"
+#include "ControlPID.h"
+
+// PI AND PWM PARAMETERS
+
+#define Dutyarranque 220
+#define offset -5
+#define VelMax 180
+#define VelMin 165
+
+const float KP = 3.5;
+const float KI = 0.001;
+const float KV = 0.04;
+
+// ULTRASONIC PARAMETERS
 
 #define TRIGGER_GPIO GPIO_NUM_32
 #define ECHO_GPIO GPIO_NUM_26
+#define MinimunDistanceCM 15
 
-// server parameters
+// VARIABLES GLOBALES
+
+bool weigth;
+bool cruce;
+bool obstaculo;
+bool state_mode;
+bool reposo;
+bool adelante;
+
+int tiempo_led;
+int rssi;
+
+uint32_t UltraData;
+
+const float EULER = 2.718281828459045;
+
+// ESTRUCURAS GLOBALES
 
 httpd_handle_t server = NULL;
 struct async_resp_arg
@@ -30,42 +59,29 @@ struct async_resp_arg
     int fd;
 };
 
-// Queue parameters
-#define ITEM_SIZE1 sizeof(Datos)
+DatosDpad Dpad;
+// Data_IN SigueLinea;
+
+// QUEUE PARAMETERS
+
+#define ITEM_SIZE1 sizeof(DatosDpad)
 #define ITEM_SIZE2 sizeof(Data_IN)
 #define QUEUE_LENGTH 1
 
 QueueHandle_t xQueue1;
-QueueHandle_t xQueue2;
+// QueueHandle_t xQueue2;
 
-TaskHandle_t xHandle1;
-TaskHandle_t xHandle2;
-TaskHandle_t xHandle3;
-TaskHandle_t xHandle4;
-
-// TAG
+// TAGS
 
 static const char *TAG = "WebSocket Server"; // TAG for debug
 
-// SPIFFS parameters
+// SPIFFS PARAMETERS
 
 #define INDEX_HTML_PATH "/spiffs/index.html"
 char index_html[4096 * 10];
 char response_data[4096 * 10];
 
-// Variables globales
-
-int led_state = 0;
-bool state_mode;
-const float EULER = 2.718281828459045;
-uint32_t UltraData;
-
-int16_t dutym1;
-int16_t dutym2;
-int16_t reposo;
-int16_t tiempo_led;
-
-/*************Server WebSocket Functions***************/
+/***************************LECTURA DATA PAGINA WEB***********************************/
 
 static void initi_web_page_buffer(void)
 {
@@ -93,6 +109,8 @@ static void initi_web_page_buffer(void)
     fclose(fp);
 }
 
+/****************************FUNCIONES WEBSOCKET***********************************/
+
 esp_err_t get_req_handler(httpd_req_t *req)
 {
     int response;
@@ -105,17 +123,24 @@ esp_err_t get_req_handler(httpd_req_t *req)
 
 static void ws_async_send(void *arg)
 {
+    uint16_t value1;
     httpd_ws_frame_t ws_pkt;
     struct async_resp_arg *resp_arg = arg;
     httpd_handle_t hd = resp_arg->hd;
     int fd = resp_arg->fd;
 
-    char json[256];
-    //sprintf(json, "{\"value1\":%u}", InDataADC());
-    sprintf(json, "{\"value1\":%u}", 500);
+    if (weigth)
+        value1 = InDataADC();
+    else
+        value1 = 0;
+
+    char buff[256];
+    memset(buff, 0, sizeof(buff));
+    sprintf(buff, "{\"value1\":%u,\"StateSwitch\":%u,\"StateButton\":%u,\"DirectionButton\":%i,\"StateWeigth\":%u}", value1, state_mode, Dpad.state_button, Dpad.direction_button, weigth);
+
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
-    ws_pkt.payload = (uint8_t *)json;
-    ws_pkt.len = strlen(json);
+    ws_pkt.payload = (uint8_t *)buff;
+    ws_pkt.len = strlen(buff);
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
 
     static size_t max_clients = CONFIG_LWIP_MAX_LISTENING_TCP;
@@ -145,13 +170,11 @@ static esp_err_t trigger_async_send(httpd_handle_t handle, httpd_req_t *req)
     struct async_resp_arg *resp_arg = malloc(sizeof(struct async_resp_arg));
     resp_arg->hd = req->handle;
     resp_arg->fd = httpd_req_to_sockfd(req);
-    // printf("trigger");
     return httpd_queue_work(handle, ws_async_send, resp_arg);
 }
 
 static esp_err_t handle_ws_req(httpd_req_t *req)
 {
-    Datos DatosTx;
     if (req->method == HTTP_GET)
     {
         ESP_LOGI(TAG, "Handshake done, the new connection was opened");
@@ -160,7 +183,6 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 
     httpd_ws_frame_t ws_pkt;
     uint8_t *buf = NULL;
-    //char BUFF[15];
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
     esp_err_t ret = httpd_ws_recv_frame(req, &ws_pkt, 0);
@@ -191,33 +213,54 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
 
-    //sprintf(BUFF, "%s", ws_pkt.payload);
-
-if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
+    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
         strcmp((char *)ws_pkt.payload, "MANUAL") == 0)
     {
+        set_mode((char *)ws_pkt.payload);
         printf((char *)ws_pkt.payload);
         free(buf);
         return trigger_async_send(req->handle, req);
     }
 
-if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
+    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
         strcmp((char *)ws_pkt.payload, "AUTO") == 0)
     {
+        set_mode((char *)ws_pkt.payload);
         printf((char *)ws_pkt.payload);
         free(buf);
         return trigger_async_send(req->handle, req);
+    }
+
+    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT && ws_pkt.len > 6)
+    {
+        if (strcmp((char *)ws_pkt.payload, "WEIGTH-UPDATE") == 0)
+        {
+            weigth = 1;
+            printf((char *)ws_pkt.payload);
+            free(buf);
+            return trigger_async_send(req->handle, req);
+        }
+        if (strcmp((char *)ws_pkt.payload, "WEIGTH-OFF") == 0)
+        {
+            weigth = 0;
+            printf((char *)ws_pkt.payload);
+            free(buf);
+            return trigger_async_send(req->handle, req);
+        }
     }
 
     if (ws_pkt.type == HTTPD_WS_TYPE_TEXT && ws_pkt.len < 4)
     {
-
+        char mnsg[4];
+        memset(mnsg, 0, sizeof(mnsg));
         printf((char *)ws_pkt.payload);
+        sprintf(mnsg, (char *)ws_pkt.payload);
+        Dpad.direction_button = atoi(strtok(mnsg, "|"));
+        Dpad.state_button = atoi(strtok(NULL, "|"));
+
         free(buf);
-        DatosTx.button = atoi(strtok((char *)ws_pkt.payload, "|"));
-        DatosTx.state_button = atoi(strtok(NULL, "|"));
-        //xQueueSend(xQueue1, &DatosTx, portMAX_DELAY);
-         return trigger_async_send(req->handle, req);
+        // xQueueSend(xQueue1, &DatosTx, portMAX_DELAY);
+        return trigger_async_send(req->handle, req);
     }
     return ESP_OK;
 }
@@ -248,8 +291,8 @@ httpd_handle_t setup_websocket_server(void)
     return server;
 }
 
-/****************Control Functions********************/
-/*
+/****************************FUNCIONES DE LLAMADA**********************************/
+
 uint16_t InDataADC(void)
 {
     uint16_t promedio1 = 0;
@@ -268,32 +311,37 @@ uint16_t InDataADC(void)
         promedio1 = 512;
 
     return promedio1;
-}*/
-/*
+}
+
 void set_mode(const char *MODE)
 {
-    Datos DatosTx;
-    Data_IN DatosRx;
+    // Datos DatosTx;
+    // Data_IN DatosRx;
 
     switch (MODE[0])
     {
     case 'M':
         state_mode = 0;
-        if (uxQueueSpacesAvailable(xQueue2))
-        {
-            xQueueReceive(xQueue2,&DatosRx,portMAX_DELAY);
-        }
-        vTaskSuspend(xHandle3);
+        tiempo_led = 1000;
+        SetDirecction(STOP);
+        /*  if (uxQueueSpacesAvailable(xQueue2))
+          {
+              xQueueReceive(xQueue2,&DatosRx,portMAX_DELAY);
+          }
+          vTaskSuspend(xHandle3);
+          */
         gpio_set_level(LED2, 1);
         printf(MODE);
-        xQueueSend(xQueue1, &DatosTx, portMAX_DELAY);
+        // xQueueSend(xQueue1, &DatosTx, portMAX_DELAY);
 
         break;
 
     case 'A':
         state_mode = 1;
+        weigth = 0;
         tiempo_led = 500;
-        vTaskResume(xHandle3);
+
+        // vTaskResume(xHandle3);
         printf(MODE);
         break;
 
@@ -315,7 +363,6 @@ void SetDirecction(int x)
         gpio_set_level(OUT4, 0);
         set_pwm(0, 0);
         reposo = 1;
-
         break;
 
     case FORWARD:
@@ -355,137 +402,31 @@ void arranque(uint16_t DutyNom1, uint16_t DutyNom2)
 {
     if (reposo)
     {
-        if (DutyNom1 == 0)
-            set_pwm(0, Dutyarranque);
-        else
-        {
-            if (DutyNom2 == 0)
-                set_pwm(Dutyarranque, 0);
-            else
-            {
-                set_pwm(Dutyarranque, Dutyarranque);
-                set_pwm(DutyNom1, DutyNom2);
-                reposo = 0;
-            }
-        }
+
+        set_pwm(Dutyarranque, Dutyarranque);
+        SetDirecction(FORWARD);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
+        set_pwm(DutyNom1, DutyNom2); /* code */
+        reposo = 0;
     }
     else
-    {
         set_pwm(DutyNom1, DutyNom2);
-    }
-    vTaskDelay(100 / portTICK_PERIOD_US);
 }
-*/
-/**********************Tasks***************************/
-/*
+
+/************************************TAREAS****************************************/
+
 void BlinkLed(void *pvParameters)
 {
     int ON = 0;
 
     while (1)
     {
-        if (state_mode)
+        if (state_mode == 1 || obstaculo == 1)
         {
             ON = !ON;
             gpio_set_level(LED2, ON);
         }
         vTaskDelay(tiempo_led / portTICK_PERIOD_MS);
-    }
-}
-
-void ControlM(void *pvParameters)
-{
-
-    Datos DatosRx;
-    DatosRx.state_button = 0;
-    DatosRx.button = 0;
-
-    while (1)
-    {
-        if (xQueueReceive(xQueue1, &DatosRx, portMAX_DELAY) == pdPASS)
-        {
-            if (!state_mode)
-            {
-                if (DatosRx.state_button)
-                {
-                    if (DatosRx.button == 0)
-                        SetDirecction(FORWARD);
-                    if (DatosRx.button == 1)
-                        SetDirecction(LEFT);
-                    if (DatosRx.button == 2)
-                        SetDirecction(BACK);
-                    if (DatosRx.button == 3)
-                        SetDirecction(RIGHT);
-                    arranque(200 - offset, 200 + offset);
-                }
-                else
-                {
-                    SetDirecction(STOP);
-                }
-            }
-            vTaskDelay(100 / portTICK_PERIOD_MS);
-        }
-        else vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-}
-
-void ControlA(void *pvParameters)
-{
-    float error;
-    float correccion;
-    float velM;
-    float pot;
-
-    Data_IN DatosRx;
-    while (1)
-    {
-
-        if (xQueueReceive(xQueue2, &DatosRx, portMAX_DELAY) == pdPASS)
-        {
-            if ((DatosRx.Sensor1 == 1 && DatosRx.Sensor2 == 1) || UltraData < 15)
-            {
-                SetDirecction(STOP);
-                tiempo_led = 50;
-                // printf("sensor1: %i sensor2: %i ultra: %lu \n",DatosRx.Sensor1,DatosRx.Sensor2,UltraData);
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-            }
-            else
-            {
-                tiempo_led = 500;
-                error = 10.0 * DatosRx.Sensor1 - 10.0 * DatosRx.Sensor2;
-                correccion = PID_Update(p_pid_data, error);
-
-                pot = -1.0 * Kv * fabs(error * KP);
-                velM = VelMin + (VelMax - VelMin) * pow(EULER, pot);
-
-                dutym1 = velM - (correccion + offset);
-                dutym2 = velM + (correccion + offset);
-
-                if (dutym1 < 50)
-                    dutym1 = 0;
-                if (dutym2 < 50)
-                    dutym2 = 0;
-
-                arranque(dutym1, dutym2);
-
-                SetDirecction(FORWARD);
-            }
-        }
-        else vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-}
-
-void DataIn(void *pvParameters)
-{
-
-    Data_IN DatosTx;
-    while (1)
-    {
-
-        DatosTx.Sensor1 = gpio_get_level(IN1);
-        DatosTx.Sensor2 = gpio_get_level(IN2);
-        xQueueSend(xQueue2, &DatosTx, portMAX_DELAY);
-        vTaskDelay(100 / portTICK_PERIOD_US);
     }
 }
 
@@ -495,12 +436,14 @@ void DatosUltra(void *pvParameters)
         .trigger_pin = TRIGGER_GPIO,
         .echo_pin = ECHO_GPIO};
 
+    wifi_ap_record_t ap;
+
     uint32_t distance;
     ultrasonic_init(&sensorU);
 
     while (1)
     {
-        if (state_mode == 1)
+        if (state_mode == 1 || adelante == 1)
         {
             esp_err_t res = ultrasonic_measure_cm(&sensorU, MAX_DISTANCE_CM, &distance);
             if (res != ESP_OK)
@@ -523,16 +466,196 @@ void DatosUltra(void *pvParameters)
                 }
             }
             // printf("Distance: %lu cm\n", distance);
-
             UltraData = distance;
+
+            if (state_mode)
+            {
+                esp_wifi_sta_get_ap_info(&ap);
+                rssi = ap.rssi;
+            }
 
             vTaskDelay(100 / portTICK_PERIOD_MS);
         }
-        else vTaskDelay(1000 / portTICK_PERIOD_MS);
+        else
+            vTaskDelay(1500 / portTICK_PERIOD_MS);
+    }
+}
+/*
+void DataIn(void *pvParameters)
+{
+
+    Data_IN DatosTX;
+    // int64_t time_start;
+
+    while (1)
+    {
+        if (state_mode)
+        {
+            DatosTX.Sensor1 = gpio_get_level(IN1);
+            DatosTX.Sensor2 = gpio_get_level(IN2);
+
+            if ((DatosTX.Sensor1 == 1 && DatosTX.Sensor2 == 1) || UltraData <= MinimunDistanceCM)
+            {
+
+                tiempo_led = 50;
+                cruce = 1;
+                SetDirecction(STOP);
+                vTaskDelay(200 / portTICK_PERIOD_MS);
+            }
+            else
+            {
+                tiempo_led = 500;
+                cruce = 0;
+                xQueueSend(xQueue1, &DatosTX, portMAX_DELAY);
+                vTaskDelay(10 / portTICK_PERIOD_MS);
+            }
+        }
+        else
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 */
-/**********************MAIN*******************************/
+void ControlM(void *pvParameters)
+{
+
+    while (1)
+    {
+
+        if (!state_mode)
+        {
+            if (Dpad.state_button)
+            {
+                if (Dpad.direction_button == 0)
+                {
+                    adelante = 1;
+                    // printf("ultra:%lu", UltraData);
+                    if ((UltraData > MinimunDistanceCM))
+                    {
+                        obstaculo = 0;
+                        tiempo_led = 100;
+                        SetDirecction(FORWARD);
+
+                        arranque(200 - offset, 200 + offset);
+                    }
+                    else
+                    {
+                        obstaculo = 1;
+                        tiempo_led = 50;
+                        SetDirecction(STOP);
+                    }
+                }
+
+                if (Dpad.direction_button == 1)
+                {
+                    SetDirecction(LEFT);
+                    arranque(200 - offset, 200 + offset);
+                }
+
+                if (Dpad.direction_button == 2)
+                {
+                    SetDirecction(BACK);
+                    arranque(200 - offset, 200 + offset);
+                }
+
+                if (Dpad.direction_button == 3)
+                {
+                    SetDirecction(RIGHT);
+                    arranque(200 - offset, 200 + offset);
+                }
+
+                vTaskDelay(10 / portTICK_PERIOD_MS);
+            }
+            else
+            {
+                tiempo_led = 1000;
+                obstaculo = 0;
+                adelante = 0;
+                gpio_set_level(LED2, 1);
+                SetDirecction(STOP);
+                vTaskDelay(10 / portTICK_PERIOD_MS);
+            }
+        }
+        else
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+void ControlA(void *pvParameters)
+{
+    float error;
+    float correccion;
+    float velM;
+    float pot;
+
+    bool sensor1 = 0;
+    bool sensor2 = 0;
+
+    // Data_IN DatosRX;
+
+    while (1)
+    {
+
+        if (state_mode)
+        {
+            if (rssi <= -40)
+            {
+
+                sensor2 = gpio_get_level(IN1);
+                vTaskDelay(100 / portTICK_PERIOD_US);
+                sensor1 = gpio_get_level(IN2);
+
+                if ((sensor1 == 1 && sensor2 == 1) || UltraData <= MinimunDistanceCM)
+                {
+                    tiempo_led = 50;
+                    // cruce = 1;
+                    SetDirecction(STOP);
+                    vTaskDelay(200 / portTICK_PERIOD_MS);
+                }
+                else
+                {
+                    PID_Coefficients(p_pid_data, 0.0, KP, KI, 0.0);
+                    tiempo_led = 500;
+                    error = 10.0 * sensor1 - 10.0 * sensor2;
+                    correccion = PID_Update(p_pid_data, error);
+
+                    pot = -1.0 * KV * fabs(error * KP);
+                    velM = VelMin + (VelMax - VelMin) * pow(EULER, pot);
+
+                    uint8_t dutym1 = velM - (correccion + offset);
+                    uint8_t dutym2 = velM + (correccion + offset);
+
+                    if (dutym1 < 50)
+                        dutym1 = 0;
+                    if (dutym2 < 50)
+                        dutym2 = 0;
+
+                    // sprintf("dutym1: %u, dutym2: %u \n", dutym1, dutym2);
+                    arranque(dutym1, dutym2);
+
+                    SetDirecction(FORWARD);
+
+                    printf("%d, %d, %i \n", dutym1, dutym2, rssi);
+
+                    vTaskDelay(10 / portTICK_PERIOD_MS);
+                }
+            }
+            else
+            {
+                if (UltraData <= MinimunDistanceCM)
+                    tiempo_led = 50;
+                else
+                    tiempo_led = 500;
+                SetDirecction(STOP);
+                printf("rssi %i \n", rssi);
+                vTaskDelay(100 / portTICK_PERIOD_MS);
+            }
+        }
+        else
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+/*************************************MAIN*****************************************/
 
 void app_main()
 {
@@ -549,34 +672,32 @@ void app_main()
 
     if (wifi_connect_status)
     {
-
         ESP_LOGI(TAG, "ESP32 ESP-IDF WebSocket Web Server is running ... ...\n");
-        initi_web_page_buffer();
-        setup_websocket_server();
-       // ESP_ERROR_CHECK(init_adc());
-        /*
-                ESP_ERROR_CHECK(init_gpio());
-                ESP_ERROR_CHECK(init_pwm());
 
-                PID_Init(p_pid_data);
-                PID_Coefficients(p_pid_data, 0.0, KP, KI, 0.0);
-                reposo = 1;
-                xQueue1 = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE1);
-                xQueue2 = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE2);
+        ESP_ERROR_CHECK(init_gpio());
+        ESP_ERROR_CHECK(init_adc());
+        ESP_ERROR_CHECK(init_pwm());
+        PID_Init(p_pid_data);
+        cruce = 0;
+        obstaculo = 0;
+        set_mode("MANUAL");
 
-                if (xQueue1 != NULL && xQueue2 != NULL)
-                {
-                    xTaskCreatePinnedToCore(BlinkLed, "led_mode", 1024, NULL, 1, NULL, 1);
-                    xTaskCreatePinnedToCore(ControlM, "control modo manual", 1024 * 10, NULL, 1, &xHandle1, 1);
-                    xTaskCreatePinnedToCore(ControlA, "control modo automatico", 1024 * 10, NULL, 1, &xHandle2, 1);
-                    xTaskCreatePinnedToCore(DataIn, "Datos entrada control", 1024 * 5, NULL, 1, &xHandle3, 1);
-                    xTaskCreatePinnedToCore(DatosUltra, "Actualización de lectura ultrasonido", 1024 * 5, NULL, 1, &xHandle4, 1);
-                }
-                else
-                {
-                    ESP_LOGW(TAG, "Tareas no creadas");
-                }
-                set_mode("MANUAL");
-                */
+        xQueue1 = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE2);
+
+        if (xQueue1 != NULL)
+        {
+            xTaskCreatePinnedToCore(BlinkLed, "led_mode", 1024 * 2, NULL, 1, NULL, 1);
+            xTaskCreatePinnedToCore(DatosUltra, "Actualización de lectura ultrasonido", 1024 * 5, NULL, 1, NULL, 1);
+            xTaskCreatePinnedToCore(ControlM, "control modo manual", 1024 * 10, NULL, 1, NULL, 1);
+            xTaskCreatePinnedToCore(ControlA, "control modo automatico", 1024 * 10, NULL, 1, NULL, 0);
+            // xTaskCreatePinnedToCore(DataIn, "Datos entrada control", 1024 * 5, NULL, 1, NULL, 0);
+
+            initi_web_page_buffer();
+            setup_websocket_server();
+        }
+        else
+        {
+            ESP_LOGW(TAG, "Tareas no creadas");
+        }
     }
 }

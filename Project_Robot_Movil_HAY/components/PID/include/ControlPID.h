@@ -10,13 +10,6 @@
 #include "esp_log.h"
 #include "esp_err.h"
 
-#define KP 0.3f
-#define KI 0.001f
-#define Kv 0.03f
-#define offset -5
-#define VelMax 195
-#define VelMin 140
-#define Dutyarranque 220
 
 typedef struct _PIDdata
 {
@@ -45,9 +38,9 @@ typedef PIDdata *ptrPIDdata;
 
 typedef struct
 {
-    uint8_t button;
-    uint8_t state_button;
-} Datos;
+    int direction_button;
+    bool state_button;
+} DatosDpad;
 
 typedef struct
 {
