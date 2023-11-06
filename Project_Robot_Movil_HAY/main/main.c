@@ -111,7 +111,8 @@ static void ws_async_send(void *arg)
     int fd = resp_arg->fd;
 
     char json[256];
-    sprintf(json, "{\"value1\":%u}", InDataADC());
+    //sprintf(json, "{\"value1\":%u}", InDataADC());
+    sprintf(json, "{\"value1\":%u}", 500);
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
     ws_pkt.payload = (uint8_t *)json;
     ws_pkt.len = strlen(json);
@@ -159,7 +160,7 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 
     httpd_ws_frame_t ws_pkt;
     uint8_t *buf = NULL;
-    char BUFF[15];
+    //char BUFF[15];
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
     esp_err_t ret = httpd_ws_recv_frame(req, &ws_pkt, 0);
@@ -190,33 +191,33 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
 
-    sprintf(BUFF, "%s", ws_pkt.payload);
+    //sprintf(BUFF, "%s", ws_pkt.payload);
 
-    if (ws_pkt.len < 4)
+if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
+        strcmp((char *)ws_pkt.payload, "MANUAL") == 0)
     {
-
-        printf(BUFF);
+        printf((char *)ws_pkt.payload);
         free(buf);
-        DatosTx.button = atoi(strtok(BUFF, "|"));
-        DatosTx.state_button = atoi(strtok(NULL, "|"));
-        xQueueSend(xQueue1, &DatosTx, portMAX_DELAY);
-        // return trigger_async_send(req->handle, req);
+        return trigger_async_send(req->handle, req);
     }
-    else
-    {
-        if (ws_pkt.type == HTTPD_WS_TYPE_TEXT && ws_pkt.len < 7)
-        {
-            free(buf);
 
-            printf(BUFF);
-            set_mode(BUFF);
-            // return trigger_async_send(req->handle, req);
-        }
-        else
-        {
-            free(buf);
-            return trigger_async_send(req->handle, req);
-        }
+if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
+        strcmp((char *)ws_pkt.payload, "AUTO") == 0)
+    {
+        printf((char *)ws_pkt.payload);
+        free(buf);
+        return trigger_async_send(req->handle, req);
+    }
+
+    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT && ws_pkt.len < 4)
+    {
+
+        printf((char *)ws_pkt.payload);
+        free(buf);
+        DatosTx.button = atoi(strtok((char *)ws_pkt.payload, "|"));
+        DatosTx.state_button = atoi(strtok(NULL, "|"));
+        //xQueueSend(xQueue1, &DatosTx, portMAX_DELAY);
+         return trigger_async_send(req->handle, req);
     }
     return ESP_OK;
 }
@@ -248,7 +249,27 @@ httpd_handle_t setup_websocket_server(void)
 }
 
 /****************Control Functions********************/
+/*
+uint16_t InDataADC(void)
+{
+    uint16_t promedio1 = 0;
 
+    uint16_t adc_value1 = adc1_get_raw(CH1);
+
+    for (int j = 0; j < NumeroMuestras; j++)
+    {
+        promedio1 += adc_value1 = adc1_get_raw(CH1);
+    }
+    // Calculo Promedio de 100 muestras
+    promedio1 /= NumeroMuestras;
+
+    // Establezco límite superior de entrada
+    if (promedio1 > 512)
+        promedio1 = 512;
+
+    return promedio1;
+}*/
+/*
 void set_mode(const char *MODE)
 {
     Datos DatosTx;
@@ -343,7 +364,7 @@ void arranque(uint16_t DutyNom1, uint16_t DutyNom2)
             else
             {
                 set_pwm(Dutyarranque, Dutyarranque);
-                set_pwm(DutyNom1, DutyNom2); /* code */
+                set_pwm(DutyNom1, DutyNom2);
                 reposo = 0;
             }
         }
@@ -354,29 +375,9 @@ void arranque(uint16_t DutyNom1, uint16_t DutyNom2)
     }
     vTaskDelay(100 / portTICK_PERIOD_US);
 }
-
-uint16_t InDataADC(void)
-{
-    uint16_t promedio1 = 0;
-
-    uint16_t adc_value1 = adc1_get_raw(CH1);
-
-    for (int j = 0; j < NumeroMuestras; j++)
-    {
-        promedio1 += adc_value1 = adc1_get_raw(CH1);
-    }
-    // Calculo Promedio de 100 muestras
-    promedio1 /= NumeroMuestras;
-
-    // Establezco límite superior de entrada
-    if (promedio1 > 512)
-        promedio1 = 512;
-
-    return promedio1;
-}
-
+*/
 /**********************Tasks***************************/
-
+/*
 void BlinkLed(void *pvParameters)
 {
     int ON = 0;
@@ -530,7 +531,7 @@ void DatosUltra(void *pvParameters)
         else vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
-
+*/
 /**********************MAIN*******************************/
 
 void app_main()
@@ -548,31 +549,34 @@ void app_main()
 
     if (wifi_connect_status)
     {
+
         ESP_LOGI(TAG, "ESP32 ESP-IDF WebSocket Web Server is running ... ...\n");
         initi_web_page_buffer();
         setup_websocket_server();
+       // ESP_ERROR_CHECK(init_adc());
+        /*
+                ESP_ERROR_CHECK(init_gpio());
+                ESP_ERROR_CHECK(init_pwm());
 
-        ESP_ERROR_CHECK(init_gpio());
-        ESP_ERROR_CHECK(init_pwm());
-        ESP_ERROR_CHECK(init_adc());
-        PID_Init(p_pid_data);
-        PID_Coefficients(p_pid_data, 0.0, KP, KI, 0.0);
-        reposo = 1;
-        xQueue1 = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE1);
-        xQueue2 = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE2);
+                PID_Init(p_pid_data);
+                PID_Coefficients(p_pid_data, 0.0, KP, KI, 0.0);
+                reposo = 1;
+                xQueue1 = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE1);
+                xQueue2 = xQueueCreate(QUEUE_LENGTH, ITEM_SIZE2);
 
-        if (xQueue1 != NULL && xQueue2 != NULL)
-        {
-            xTaskCreatePinnedToCore(BlinkLed, "led_mode", 1024, NULL, 1, NULL, 1);
-            xTaskCreatePinnedToCore(ControlM, "control modo manual", 1024 * 10, NULL, 1, &xHandle1, 1);
-            xTaskCreatePinnedToCore(ControlA, "control modo automatico", 1024 * 10, NULL, 1, &xHandle2, 1);
-            xTaskCreatePinnedToCore(DataIn, "Datos entrada control", 1024 * 5, NULL, 1, &xHandle3, 1);
-            xTaskCreatePinnedToCore(DatosUltra, "Actualización de lectura ultrasonido", 1024 * 5, NULL, 1, &xHandle4, 1);
-        }
-        else
-        {
-            ESP_LOGW(TAG, "Tareas no creadas");
-        }
-        set_mode("MANUAL");
+                if (xQueue1 != NULL && xQueue2 != NULL)
+                {
+                    xTaskCreatePinnedToCore(BlinkLed, "led_mode", 1024, NULL, 1, NULL, 1);
+                    xTaskCreatePinnedToCore(ControlM, "control modo manual", 1024 * 10, NULL, 1, &xHandle1, 1);
+                    xTaskCreatePinnedToCore(ControlA, "control modo automatico", 1024 * 10, NULL, 1, &xHandle2, 1);
+                    xTaskCreatePinnedToCore(DataIn, "Datos entrada control", 1024 * 5, NULL, 1, &xHandle3, 1);
+                    xTaskCreatePinnedToCore(DatosUltra, "Actualización de lectura ultrasonido", 1024 * 5, NULL, 1, &xHandle4, 1);
+                }
+                else
+                {
+                    ESP_LOGW(TAG, "Tareas no creadas");
+                }
+                set_mode("MANUAL");
+                */
     }
 }

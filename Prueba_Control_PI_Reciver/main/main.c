@@ -24,7 +24,7 @@
 #define ESP_CHANNEL 1
 #define VelSpinR 165
 #define VelSpinL 200
-#define Dutyarranque 250
+#define Dutyarranque 220
 #define max_time_us 600000
 #define offset -5
 #define timeout_expired(start, len) ((esp_timer_get_time() - (start)) >= (len))
@@ -242,7 +242,7 @@ void TareaEntradaDatos(void *Parametro)
              }
             */
             xQueueSend(xQueue, &DatosTX, portMAX_DELAY);
-            vTaskDelay(10 / portTICK_PERIOD_MS);
+            vTaskDelay(500/ portTICK_PERIOD_US);
         }
     }
 }
