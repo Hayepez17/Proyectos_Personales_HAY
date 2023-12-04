@@ -4,13 +4,14 @@
 #include "init_adc.h"
 #include "init_gpio.h"
 #include "tareas.h"
+#include "ultrasonic.h"
 #include <WiFiClientSecure.h>
 #include <Wire.h>
 #include <PubSubClient.h>
 
 // Credenciales de red Wifi
-const char *ssid = "WIFI_HOME_VV";
-const char *password = "C4s4VV001";
+const char *ssid = "wifihector";
+const char *password = "123456789";
 
 // Servidor MQTT
 const char *mqtt_server = "a1vreyb61dmm02-ats.iot.us-east-1.amazonaws.com";
@@ -26,12 +27,16 @@ int value = 0;
 byte mac[6];
 char mac_Id[18];
 int count = 1;
-//********************************
+//***************Ultrasonic Parameters*****************
+
+ultrasonic_sensor_t sensorU = {
+    .trigger_pin = TRIGGER_GPIO,
+    .echo_pin = ECHO_GPIO};
 
 //********************************
 
 // Queue parameters
-#define QUEUE_LENGTH 2
+#define QUEUE_LENGTH 1
 #define ITEM_SIZE sizeof(Datos)
 
 // Queue handle
@@ -158,7 +163,7 @@ void EntradaDatos(void *pvParameters)
 
     datosTx.valadc1 = promedio1;
     datosTx.valadc2 = promedio2;
-    datosTx.valuef = (promedio1 + promedio2) / 20.0f;
+    datosTx.valuef = Ultrasonic();
 
     xQueueSend(xQueue, &datosTx, portMAX_DELAY);
     vTaskDelay(5000 / portTICK_PERIOD_MS);
@@ -177,14 +182,14 @@ void SalidaDatos(void *pvParameters)
       String Sensor1 = String(datosRx.valadc1);
       String Sensor2 = String(datosRx.valadc2);
       String Sensor3 = String(datosRx.valuef);
-      snprintf(msg, BUFFER_LEN, "{\"mac_Id\" : \"%s\", \"Cuarto\" : \"1\", \"Sensor1\" : %s, \"Sensor2\" : %s, \"Sensor3\" : %s}", macIdStr.c_str(), Sensor1.c_str(), Sensor2.c_str(), Sensor3.c_str());
+      snprintf(msg, BUFFER_LEN, "{\"mac_Id\" : \"%s\", \"Sensor1\" : %s, \"Sensor2\" : %s, \"Sensor3\" : %s}", macIdStr.c_str(), Sensor1.c_str(), Sensor2.c_str(), Sensor3.c_str());
       Serial.print("Publicando mensaje: ");
       Serial.print(count);
       Serial.println(msg);
       client.publish("sensor", msg);
       count++;
 
-      vTaskDelay(10000 / portTICK_PERIOD_MS);
+      vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
   }
 }
@@ -197,10 +202,10 @@ void EnviarAlerta(void *pvParameters)
   {
     // presiona boton y suelta
     while (gpio_get_level(BT) == 0)
-      vTaskDelay(40 / portTICK_PERIOD_MS); // boton presionado
+      vTaskDelay(100 / portTICK_PERIOD_MS); // boton presionado
 
     while (gpio_get_level(BT) == 1)
-      vTaskDelay(40 / portTICK_PERIOD_MS); // boton sin presionar
+      vTaskDelay(100 / portTICK_PERIOD_MS); // boton sin presionar
 
     datosTx.valadc1 = 710;
     datosTx.valadc2 = 860;
@@ -210,15 +215,43 @@ void EnviarAlerta(void *pvParameters)
   }
 }
 
+float Ultrasonic(void)
+{
+  float distance;
+
+  esp_err_t res = ultrasonic_measure(&sensorU, MAX_DISTANCE_CM, &distance);
+  if (res != ESP_OK)
+  {
+    printf("Error %d: ", res);
+    switch (res)
+    {
+    case ESP_ERR_ULTRASONIC_PING:
+      printf("Cannot ping (device is in invalid state)\n");
+      break;
+    case ESP_ERR_ULTRASONIC_PING_TIMEOUT:
+      printf("Ping timeout (no device found)\n");
+      break;
+    case ESP_ERR_ULTRASONIC_ECHO_TIMEOUT:
+      printf("Echo timeout (i.e. distance too big)\n");
+      distance = MAX_DISTANCE_M;
+      break;
+    default:
+      printf("%s\n", esp_err_to_name(res));
+    }
+  }
+
+  return distance;
+}
+
 // Main
 void setup()
 {
-
   Serial.begin(115200);
   Serial.setDebugOutput(true);
 
   init_gpio();
   init_adc();
+  ultrasonic_init(&sensorU);
 
   setup_wifi();
   vTaskDelay(pdMS_TO_TICKS(1000));
@@ -336,10 +369,9 @@ void loop()
     reconnect();
   }
   client.loop();
- 
- gpio_set_level(LED2,1);
- vTaskDelay(pdMS_TO_TICKS(1000));
- gpio_set_level(LED2,0);
- vTaskDelay(pdMS_TO_TICKS(1000));
 
+  gpio_set_level(LED2, 1);
+  vTaskDelay(pdMS_TO_TICKS(1000));
+  gpio_set_level(LED2, 0);
+  vTaskDelay(pdMS_TO_TICKS(1000));
 }
